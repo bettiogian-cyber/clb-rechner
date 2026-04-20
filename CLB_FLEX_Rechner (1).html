@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>CLB / FLEX Rechner</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#090b0f;--bg2:#111419;--bg3:#181c24;--bg4:#1f2432;
+  --b:rgba(255,255,255,.07);--b2:rgba(255,255,255,.13);
+  --tx:#dde2ee;--mu:#5e6880;--mu2:#8a95aa;
+  --ab:#2d7fe8;--ab2:#5aa3ff;--ab-bg:rgba(45,127,232,.09);--ab-b:rgba(45,127,232,.22);
+  --bo:#e8832d;--bo2:#ffaa5a;--bo-bg:rgba(232,131,45,.09);--bo-b:rgba(232,131,45,.22);
+  --ft:#2dc48a;--ft-bg:rgba(45,196,138,.09);
+  --sb:#9b6dff;--sb-bg:rgba(155,109,255,.09);
+  --c0:#e85555;--c0bg:rgba(232,85,85,.13);
+  --c1:#e8c32d;--c1bg:rgba(232,195,45,.13);
+  --c2:#2dc48a;--c2bg:rgba(45,196,138,.13);
+  --r:10px;--rs:6px;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Barlow',sans-serif;
+  --cond:'Barlow Condensed',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:15px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--b);padding:0 20px;display:flex;align-items:center;gap:12px;height:52px;position:sticky;top:0;z-index:200}
+.logo{font-family:var(--cond);font-size:19px;font-weight:700;letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+.pulse{width:9px;height:9px;border-radius:50%;background:var(--ab);box-shadow:0 0 0 0 rgba(45,127,232,.5);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(45,127,232,.4)}70%{box-shadow:0 0 0 8px rgba(45,127,232,0)}100%{box-shadow:0 0 0 0 rgba(45,127,232,0)}}
+.tabs{display:flex;gap:2px;margin-left:auto}
+.tab{padding:6px 14px;border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--mu);transition:all .15s;font-family:var(--sans)}
+.tab:hover{color:var(--tx);background:rgba(255,255,255,.05)}
+.tab.active{color:var(--tx);background:rgba(255,255,255,.09)}
+.tab.ab.active{color:var(--ab2);background:var(--ab-bg)}
+.tab.bo.active{color:var(--bo2);background:var(--bo-bg)}
+.tab.ft.active{color:var(--ft);background:var(--ft-bg)}
+.tab.sb.active{color:#c4a8ff;background:var(--sb-bg)}
+.ratebtn{background:var(--bg3);border:1px solid var(--b2);color:var(--mu);border-radius:var(--rs);padding:5px 9px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--mono);transition:all .15s}
+.ratebtn:hover{color:var(--tx);border-color:var(--ft)}
+.active-rate{background:var(--ft-bg);border-color:var(--ft);color:var(--ft)}
+
+/* LAYOUT */
+.main{max-width:1120px;margin:0 auto;padding:20px 20px 80px}
+.section{display:none}.section.active{display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g{display:grid;gap:8px}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--b);border-radius:var(--r);padding:16px}
+.clabel{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--mu);text-transform:uppercase;margin-bottom:12px;font-family:var(--cond)}
+
+/* SIMBRIEF */
+.sbbar{background:var(--bg2);border:1px solid var(--b);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.sblabel{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--sb);font-family:var(--cond)}
+.sbinput{background:var(--bg3);border:1px solid var(--b2);border-radius:var(--rs);color:var(--tx);font-family:var(--mono);font-size:13px;padding:7px 11px;width:148px;outline:none;transition:border-color .15s}
+.sbinput:focus{border-color:var(--sb)}
+.sbbtn{background:var(--sb-bg);border:1px solid rgba(155,109,255,.3);color:#c4a8ff;border-radius:var(--rs);padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.sbbtn:hover{background:rgba(155,109,255,.18)}.sbbtn:disabled{opacity:.4;cursor:not-allowed}
+.sbstat{font-size:12px;color:var(--mu);flex:1;font-family:var(--mono);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbstat.ok{color:var(--c2)}.sbstat.err{color:var(--c0)}
+
+/* ROUTE STRIP */
+.rstrip{background:var(--bg2);border:1px solid var(--b);border-radius:var(--r);padding:14px 20px;margin-bottom:14px;display:flex;align-items:center;gap:0}
+.rapt{text-align:center;min-width:76px}
+.ricao{font-family:var(--mono);font-size:20px;font-weight:700}
+.rname{font-size:10px;color:var(--mu);margin-top:2px;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rline{flex:1;position:relative;padding:0 16px;display:flex;align-items:center}
+.rtrack{flex:1;height:1px;background:linear-gradient(90deg,var(--ab),var(--ab2),var(--ab))}
+.rplane{font-size:18px;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);filter:drop-shadow(0 0 6px var(--ab))}
+.rinfo{position:absolute;top:-22px;left:50%;transform:translateX(-50%);display:flex;gap:6px;white-space:nowrap}
+.rchip{background:var(--bg3);border:1px solid var(--b2);border-radius:100px;padding:2px 10px;font-size:10px;font-family:var(--mono);color:var(--mu2)}
+
+/* FIELDS */
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--mu);margin-bottom:5px;font-family:var(--cond)}
+.field input,.field select{width:100%;background:var(--bg3);border:1px solid var(--b2);border-radius:var(--rs);color:var(--tx);font-family:var(--mono);font-size:14px;padding:8px 10px;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
+.field input:focus,.field select:focus{border-color:rgba(255,255,255,.28)}
+.ab .field input:focus,.ab .field select:focus{border-color:var(--ab)}
+.bo .field input:focus,.bo .field select:focus{border-color:var(--bo)}
+.field select{cursor:pointer}.field select option{background:#1a1d26}
+
+/* SEC HEADER */
+.shdr{display:flex;align-items:baseline;gap:12px;margin-bottom:18px}
+.stitle{font-family:var(--cond);font-size:22px;font-weight:700;letter-spacing:.04em}
+.ssub{font-size:13px;color:var(--mu)}
+
+/* CLB BOX */
+.clbbox{background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);padding:14px;margin-top:10px}
+.clbtitle{font-size:14px;font-weight:600;margin-bottom:4px}
+.clbcomment{font-size:12px;color:var(--mu2);line-height:1.5}
+.pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.pill{font-size:10px;font-family:var(--mono);padding:3px 8px;border-radius:100px;border:1px solid var(--b2);color:var(--mu2)}
+.pill.w{border-color:var(--c0);color:var(--c0);background:var(--c0bg)}
+
+/* WIND CHIPS */
+.wchips{display:flex;gap:8px;margin-top:10px}
+.wchip{background:var(--bg3);border:1px solid var(--b);border-radius:var(--rs);padding:8px 12px;flex:1;text-align:center}
+.wlbl{display:block;font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--mu);font-family:var(--cond);margin-bottom:3px}
+.wval{font-size:15px;font-weight:500;font-family:var(--mono)}
+.hwp{color:var(--c2)}.hwn{color:var(--c0)}
+
+/* ETA STATS */
+.etagrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.etastat{background:var(--bg3);border-radius:var(--rs);padding:11px;text-align:center}
+.etaslbl{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--mu);font-family:var(--cond);display:block;margin-bottom:4px}
+.etasval{font-size:19px;font-weight:600;font-family:var(--mono)}
+.etassub{font-size:10px;color:var(--mu);margin-top:2px}
+
+/* SPINNER */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{width:13px;height:13px;border:2px solid rgba(155,109,255,.3);border-top-color:var(--sb);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;flex-shrink:0}
+
+/* RESPONSIVE */
+@media(max-width:720px){
+  .g2,.g3{grid-template-columns:1fr}
+  .tabs .tab{padding:5px 9px;font-size:12px}
+  .logo span{display:none}
+  .sbinput{width:115px}
+}
+@media(max-width:440px){.main{padding:12px 10px 80px}.topbar{padding:0 10px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="pulse"></div>
+    CLB/FLEX
+    <span style="font-weight:300;opacity:.3;margin:0 4px;font-size:14px">|</span>
+    <span style="font-weight:300;font-size:14px;letter-spacing:0">Rechner</span>
+  </div>
+  <div class="tabs">
+    <button class="tab sb" onclick="showTab('simbrief')">SimBrief</button>
+    <button class="tab ab active" onclick="showTab('airbus')">Airbus</button>
+    <button class="tab bo" onclick="showTab('boeing')">Boeing</button>
+    <button class="tab ft" onclick="showTab('eta')">ETA</button>
+  </div>
+</div>
+
+<div class="main">
+
+
+
+
+
+<!-- ===== SIMBRIEF ===== -->
+<div class="section sb" id="tab-simbrief">
+  <div class="shdr">
+    <div class="stitle" style="color:#c4a8ff">SimBrief</div>
+    <div class="ssub">Flugplandaten automatisch laden</div>
+  </div>
+
+  <div class="g2" style="align-items:start">
+    <div class="card">
+      <div class="clabel">Pilot-ID</div>
+      <div class="g">
+        <div class="field">
+          <label>SimBrief Pilot-ID (numerisch)</label>
+          <input class="sbinput" id="sb-id" type="text" placeholder="Pilot-ID oder Username" style="width:100%;font-size:16px;padding:10px 12px">
+        </div>
+        <button class="sbbtn" id="sb-btn" onclick="fetchSB()" style="width:100%;justify-content:center;padding:11px;font-size:14px">
+          <span id="sb-icon">↓</span> Flugplandaten laden
+        </button>
+        <div class="sbstat" id="sb-stat" style="padding:4px 2px;white-space:normal">Pilot-ID (numerisch) oder SimBrief-Username eingeben</div>
+        <div style="font-size:11px;color:var(--mu);margin-top:8px;line-height:1.6">
+          Pilot-ID findest du auf simbrief.com unter <em>Account → Dispatch System → Pilot ID</em>.<br>
+          Falls "Failed to fetch": Datei über einen lokalen Webserver öffnen (Windows: <code style="font-family:var(--mono);background:var(--bg4);padding:1px 5px;border-radius:3px">python -m http.server 8000</code>).
+        </div>
+        <div style="height:1px;background:var(--b);margin:14px 0"></div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--ft);font-family:var(--cond);margin-bottom:8px">LIVE WETTER (AVWX) — Windows / GitHub Pages</div>
+        <div class="g" style="gap:8px">
+          <div class="field">
+            <label>AVWX API Key — kostenlos auf avwx.rest</label>
+            <input id="avwx-key" type="text" placeholder="API Key eingeben" style="font-family:var(--mono);font-size:12px"
+              oninput="localStorage.setItem('avwx_key',this.value)">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="fetchAVWX()" class="sbbtn" style="flex:1;justify-content:center;background:var(--ft-bg);border-color:rgba(45,196,138,.3);color:var(--ft)">
+              ↻ Live Wetter laden
+            </button>
+            <button onclick="startWeatherLoop()" class="sbbtn" style="flex:1;justify-content:center" id="wx-loop-btn">
+              ⏱ Auto (30 min)
+            </button>
+          </div>
+          <div style="font-size:11px;font-family:var(--mono)" id="avwx-stat"></div>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--mu);margin-top:4px;word-break:break-all;line-height:1.5" id="avwx-raw"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="clabel">Geladene Daten</div>
+      <div id="sb-summary" style="color:var(--mu);font-size:13px;line-height:2">
+        <div>Noch keine Daten geladen.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Route strip (shown after load) -->
+  <div class="rstrip" id="rstrip" style="display:none;margin-top:12px">
+    <div class="rapt">
+      <div class="ricao" id="r-dep" style="color:var(--ab2)">—</div>
+      <div class="rname" id="r-depname">Abflug</div>
+    </div>
+    <div class="rline">
+      <div class="rinfo">
+        <div class="rchip" id="r-dist">— nm</div>
+        <div class="rchip" id="r-ete">— h</div>
+      </div>
+      <div class="rtrack"></div>
+      <div class="rplane">✈</div>
+    </div>
+    <div class="rapt" style="text-align:right">
+      <div class="ricao" id="r-arr" style="color:var(--bo2)">—</div>
+      <div class="rname" id="r-arrname" style="text-align:right">Ankunft</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AIRBUS ===== -->
+<div class="section active ab" id="tab-airbus">
+  <div class="shdr">
+    <div class="stitle" style="color:var(--ab2)">Airbus CLB / FLEX</div>
+    <div class="ssub">A320 · A330 · A340 Family</div>
+  </div>
+  <div class="g3" style="margin-bottom:12px">
+    <div class="card">
+      <div class="clabel">Flugzeug</div>
+      <div class="g">
+        <div class="field"><label>Familie</label>
+          <select id="ab-fam" onchange="updAbMod()">
+            <option value="">— wählen —</option>
+            <option value="A320">A320 Family</option>
+            <option value="A330">A330 Family</option>
+            <option value="A340">A340 Family</option>
+          </select></div>
+        <div class="field"><label>Modell</label>
+          <select id="ab-mod" onchange="updAbEng();calcAB()">
+            <option value="">— Familie wählen —</option></select></div>
+        <div class="field"><label>Engine</label>
+          <select id="ab-eng" onchange="calcAB()"><option value="">—</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Gewicht &amp; FLEX</div>
+      <div class="g">
+        <div class="field"><label>Gross Weight (t)</label>
+          <input id="ab-gw" type="number" placeholder="z.B. 230" oninput="calcAB()"></div>
+        <div class="field"><label>FLEX Temp (°C)</label>
+          <input id="ab-flex" type="number" placeholder="z.B. 55" oninput="calcAB()"></div>
+        <div class="field"><label>OAT (°C)</label>
+          <input id="ab-oat" type="number" placeholder="z.B. 22" oninput="calcAB()"></div>
+        <div class="field"><label>QNH (hPa)</label>
+          <input id="ab-qnh" type="number" placeholder="1013" oninput="calcAB()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Wind &amp; Runway</div>
+      <div class="g">
+        <div class="field"><label>Dep. ICAO</label>
+          <input id="ab-icao" type="text" placeholder="LSZH" maxlength="4" style="text-transform:uppercase"
+            oninput="this.value=this.value.toUpperCase();updRWY('ab');showApName('ab');calcAB()"></div>
+        <div style="font-size:11px;color:var(--mu2);font-family:var(--mono);padding:2px 0;min-height:16px" id="ab-apname"></div>
+        <div class="field"><label>Runway</label>
+          <select id="ab-rwy" onchange="pickRWY('ab');calcAB()">
+            <option value="">— ICAO eingeben —</option></select></div>
+        <div class="field"><label>Windrichtung (°)</label>
+          <input id="ab-wdir" type="number" placeholder="270" oninput="calcAB()"></div>
+        <div class="field"><label>Windstärke (kt)</label>
+          <input id="ab-wspd" type="number" placeholder="15" oninput="calcAB()"></div>
+      </div>
+    </div>
+  </div>
+  <div class="g3" style="align-items:start">
+    <div class="card" style="display:flex;flex-direction:column;align-items:center">
+      <div class="clabel" style="align-self:flex-start">CLB Empfehlung</div>
+      <canvas id="ab-gauge" width="200" height="120"></canvas>
+      <div class="clbbox" style="width:100%">
+        <div class="clbtitle" id="ab-ctitle">Daten eingeben</div>
+        <div class="clbcomment" id="ab-ccomment">Flugzeug und Wetter eingeben.</div>
+        <div class="pills" id="ab-pills"></div>
+      </div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;align-items:center">
+      <div class="clabel" style="align-self:flex-start">Windrose &amp; Runway</div>
+      <canvas id="ab-rose" width="190" height="190"></canvas>
+      <div class="wchips" style="width:100%">
+        <div class="wchip"><span class="wlbl">HEAD/TAILWIND</span><span class="wval" id="ab-hw">—</span></div>
+        <div class="wchip"><span class="wlbl">CROSSWIND</span><span class="wval" id="ab-cw">—</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Gewichtsanalyse</div>
+      <canvas id="ab-wb" width="220" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BOEING ===== -->
+<div class="section bo" id="tab-boeing">
+  <div class="shdr">
+    <div class="stitle" style="color:var(--bo2)">Boeing CLB / Assumed Temp</div>
+    <div class="ssub">B737 · B747 · B777 · B787</div>
+  </div>
+  <div class="g3" style="margin-bottom:12px">
+    <div class="card">
+      <div class="clabel">Flugzeug</div>
+      <div class="g">
+        <div class="field"><label>Familie</label>
+          <select id="bo-fam" onchange="updBoMod()">
+            <option value="">— wählen —</option>
+            <option>B737</option><option>B747</option>
+            <option>B777</option><option>B787</option>
+          </select></div>
+        <div class="field"><label>Modell</label>
+          <select id="bo-mod" onchange="updBoEng();calcBO()">
+            <option value="">— Familie wählen —</option></select></div>
+        <div class="field"><label>Engine</label>
+          <select id="bo-eng" onchange="calcBO()"><option value="">—</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Gewicht</div>
+      <div class="g">
+        <div class="field"><label>GW (lbs)</label>
+          <input id="bo-lbs" type="number" placeholder="620000" oninput="l2k();calcBO()"></div>
+        <div class="field"><label>GW (kg) — auto</label>
+          <input id="bo-kg" type="number" placeholder="auto" oninput="k2l();calcBO()" style="color:var(--mu2)"></div>
+        <div class="field"><label>Assumed Temp (°C)</label>
+          <input id="bo-at" type="number" placeholder="55" oninput="calcBO()"></div>
+        <div class="field"><label>OAT (°C)</label>
+          <input id="bo-oat" type="number" placeholder="22" oninput="calcBO()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Wind &amp; Runway</div>
+      <div class="g">
+        <div class="field"><label>Dep. ICAO</label>
+          <input id="bo-icao" type="text" placeholder="EDDF" maxlength="4" style="text-transform:uppercase"
+            oninput="this.value=this.value.toUpperCase();updRWY('bo');showApName('bo');calcBO()"></div>
+        <div style="font-size:11px;color:var(--mu2);font-family:var(--mono);padding:2px 0;min-height:16px" id="bo-apname"></div>
+        <div class="field"><label>Runway</label>
+          <select id="bo-rwy" onchange="pickRWY('bo');calcBO()">
+            <option value="">— ICAO eingeben —</option></select></div>
+        <div class="field"><label>QNH (hPa)</label>
+          <input id="bo-qnh" type="number" placeholder="1013" oninput="calcBO()"></div>
+        <div class="field"><label>Wind (° / kt)</label>
+          <div style="display:flex;gap:6px">
+            <input id="bo-wdir" type="number" placeholder="270°" style="flex:1" oninput="calcBO()">
+            <input id="bo-wspd" type="number" placeholder="kt" style="flex:1" oninput="calcBO()">
+          </div></div>
+      </div>
+    </div>
+  </div>
+  <div class="g3" style="align-items:start">
+    <div class="card" style="display:flex;flex-direction:column;align-items:center">
+      <div class="clabel" style="align-self:flex-start">CLB Empfehlung</div>
+      <canvas id="bo-gauge" width="200" height="120"></canvas>
+      <div class="clbbox" style="width:100%">
+        <div class="clbtitle" id="bo-ctitle">Daten eingeben</div>
+        <div class="clbcomment" id="bo-ccomment">Flugzeug und Gewicht eingeben.</div>
+        <div class="pills" id="bo-pills"></div>
+      </div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;align-items:center">
+      <div class="clabel" style="align-self:flex-start">Windrose &amp; Runway</div>
+      <canvas id="bo-rose" width="190" height="190"></canvas>
+      <div class="wchips" style="width:100%">
+        <div class="wchip"><span class="wlbl">HEAD/TAILWIND</span><span class="wval" id="bo-hw">—</span></div>
+        <div class="wchip"><span class="wlbl">CROSSWIND</span><span class="wval" id="bo-cw">—</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Gewichtsanalyse</div>
+      <canvas id="bo-wb" width="220" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ETA ===== -->
+<div class="section" id="tab-eta">
+  <div class="shdr">
+    <div class="stitle" style="color:var(--ft)">Flight Time &amp; ETA</div>
+    <div class="ssub">Ankunftszeit · Fortschritt · Zeitzonen</div>
+  </div>
+  <div class="g2" style="align-items:start">
+    <div class="card">
+      <div class="clabel">Flugdaten</div>
+      <div class="g">
+        <div class="field"><label>Destination ICAO</label>
+          <input id="eta-icao" type="text" placeholder="OMDB" maxlength="4" style="text-transform:uppercase"
+            oninput="this.value=this.value.toUpperCase();etaLookup()"></div>
+        <div class="field"><label>Flughafen</label>
+          <input id="eta-ap" type="text" placeholder="wird automatisch befüllt" readonly style="opacity:.5;font-size:12px"></div>
+        <div class="field"><label>Abflugdatum</label>
+          <input id="eta-date" type="date" oninput="calcETA()" style="font-family:var(--mono)"></div>
+        <div class="field"><label>UTC Ankunft (HH:MM)</label>
+          <input id="eta-arr" type="time" oninput="calcETA()"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel">Flugfortschritt</div>
+
+      <!-- Sim-UTC clock input -->
+      <div style="background:var(--bg3);border:1px solid var(--b2);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--sb);font-family:var(--cond);margin-bottom:8px">SIM UTC – einmal eingeben, läuft dann selbst</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div class="field" style="flex:1;min-width:100px;margin:0">
+            <label>Aktuelle Sim-UTC</label>
+            <input id="sim-utc" type="time" oninput="startSimClock()">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;margin-top:14px">
+            <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--mu);font-family:var(--cond)">SIM RATE</div>
+            <div style="display:flex;gap:4px">
+              <button onclick="setRate(1)"  id="rate-1"  class="ratebtn active-rate">×1</button>
+              <button onclick="setRate(2)"  id="rate-2"  class="ratebtn">×2</button>
+              <button onclick="setRate(4)"  id="rate-4"  class="ratebtn">×4</button>
+              <button onclick="setRate(8)"  id="rate-8"  class="ratebtn">×8</button>
+              <button onclick="setRate(16)" id="rate-16" class="ratebtn">×16</button>
+            </div>
+          </div>
+          <button onclick="resetSimClock()" style="background:transparent;border:1px solid var(--b2);color:var(--mu);border-radius:var(--rs);padding:6px 12px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:var(--sans);margin-top:14px">↺ Reset</button>
+          <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--ft);min-width:70px;text-align:right;margin-top:14px" id="sim-clock-display">—</div>
+        </div>
+        <div style="font-size:11px;color:var(--mu);margin-top:6px" id="sim-clock-info">Sim-UTC eingeben → Timer läuft automatisch weiter</div>
+      </div>
+
+      <!-- Route graphic -->
+      <div style="margin-bottom:16px">
+        <canvas id="eta-route" width="560" height="130" style="width:100%;height:auto;display:block;max-width:100%"></canvas>
+        <div style="display:flex;justify-content:space-between;margin-top:4px">
+          <span style="font-size:10px;color:var(--mu);font-family:var(--mono)" id="eta-elapsed-lbl">elapsed —</span>
+          <span style="font-size:11px;font-weight:600;color:var(--mu2);font-family:var(--mono)" id="eta-status-lbl">—</span>
+          <span style="font-size:10px;color:var(--mu);font-family:var(--mono)" id="eta-rem-lbl">rem —</span>
+        </div>
+      </div>
+
+      <!-- Stats grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
+
+  <!-- Restflugzeit -->
+  <div class="etastat">
+    <span class="etaslbl">RESTFLUGZEIT</span>
+    <div class="etasval" style="color:var(--ft);font-size:26px" id="eta-rem">—</div>
+  </div>
+
+  <!-- Lokale Ankunft -->
+  <div style="background:var(--bg3);border-radius:var(--rs);padding:12px;border:1px solid var(--ab-b)">
+    <span class="etaslbl" style="color:var(--ab2)">LOK. ANKUNFT</span>
+    <div style="font-family:var(--mono);font-size:24px;font-weight:700;margin-top:4px;color:var(--tx)" id="eta-loc">—</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap">
+      <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ab2);
+                  background:var(--ab-bg);border:1px solid var(--ab-b);
+                  border-radius:4px;padding:2px 7px;white-space:nowrap" id="eta-loc-date"></div>
+      <div style="font-size:11px;color:var(--mu);font-family:var(--cond)" id="eta-tz"></div>
+    </div>
+  </div>
+
+  <!-- CH-Zeit -->
+  <div style="background:var(--bg3);border-radius:var(--rs);padding:12px;border:1px solid var(--ft-b)">
+    <span class="etaslbl" style="color:var(--ft)">CH-ZEIT</span>
+    <div style="font-family:var(--mono);font-size:24px;font-weight:700;margin-top:4px;color:var(--tx)" id="eta-ch">—</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap">
+      <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ft);
+                  background:var(--ft-bg);border:1px solid var(--ft-b);
+                  border-radius:4px;padding:2px 7px;white-space:nowrap" id="eta-ch-date"></div>
+      <div style="font-size:11px;color:var(--mu);font-family:var(--cond)" id="eta-chtz"></div>
+    </div>
+  </div>
+
+</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+<script>
+// ── DATA ─────────────────────────────────────────────────
+const ABM={
+  A320:{'A319ceo':['CFM56-5B','IAE V2524'],'A319neo':['LEAP-1A','PW1100G'],
+        'A320ceo':['CFM56-5B','IAE V2527'],'A320neo':['LEAP-1A','PW1100G'],
+        'A321ceo':['CFM56-5B','IAE V2533'],'A321neo':['LEAP-1A','PW1100G']},
+  A330:{'A330-200':['Trent 700','CF6-80E1','PW4168'],'A330-300':['Trent 700','CF6-80E1','PW4164'],'A330-900neo':['Trent 7000']},
+  A340:{'A340-200':['CFM56-5C3'],'A340-300':['CFM56-5C4'],'A340-500':['Trent 553'],'A340-600':['Trent 556']}
+};
+const BOM={
+  B737:{'B737-700':['CFM56-7B'],'B737-800':['CFM56-7B'],'B737-900':['CFM56-7B'],'B737-8 MAX':['LEAP-1B'],'B737-9 MAX':['LEAP-1B']},
+  B747:{'B747-400':['PW4062','CF6-80C2','RB211-524'],'B747-8':['GEnx-2B']},
+  B777:{'B777-200':['GE90-90B','PW4090','Trent 892'],'B777-200ER':['GE90-94B'],'B777-200LR':['GE90-110B1L'],'B777-300':['GE90-115B'],'B777-300ER':['GE90-115B']},
+  B787:{'B787-8':['Trent 1000','GEnx-1B'],'B787-9':['Trent 1000','GEnx-1B'],'B787-10':['Trent 1000','GEnx-1B']}
+};
+const ABMTOW={'A319ceo':75.5,'A319neo':75.5,'A320ceo':77,'A320neo':79,'A321ceo':89,'A321neo':97,
+  'A330-200':233,'A330-300':242,'A330-900neo':251,'A340-200':275,'A340-300':276,'A340-500':372,'A340-600':368};
+const BOMTOW={'B737-700':154500,'B737-800':174000,'B737-900':187700,'B737-8 MAX':181000,'B737-9 MAX':194700,
+  'B747-400':875000,'B747-8':987000,'B777-200':545000,'B777-200ER':656000,'B777-200LR':766000,
+  'B777-300':660000,'B777-300ER':775000,'B787-8':502000,'B787-9':560000,'B787-10':560000};
+const RWY={
+  // ── DACH ─────────────────────────────────────────────────────────
+  LSZH:{'10':95,'16':155,'28':275,'34':335},
+  LSGG:{'04':040,'22':220,'23':228},
+  LFSB:{'15':152,'33':332},
+  LOWI:{'08':080,'26':260},
+  LOWS:{'15':150,'33':330},
+  LOWW:{'11':113,'16':160,'29':293,'34':340},
+  LOWG:{'17C':170,'17R':170,'35C':350,'35L':350},
+  LOWK:{'09':090,'27':270},
+  EDDF:{'07L':070,'07C':070,'07R':070,'18':178,'25L':250,'25C':250,'25R':250},
+  EDDM:{'08L':080,'08R':080,'26L':260,'26R':260},
+  EDDB:{'07L':072,'07R':072,'25L':252,'25R':252},
+  EDDH:{'05':052,'15':147,'23':232,'33':327},
+  EDDS:{'07':072,'25':252},
+  EDDL:{'05L':051,'05R':051,'23L':231,'23R':231},
+  EDDK:{'06':062,'14L':140,'14R':140,'24':242,'32L':320,'32R':320},
+  EDDP:{'08L':080,'08R':080,'26L':260,'26R':260},
+  EDDN:{'10':100,'28':280},
+  // ── UK & IRELAND ──────────────────────────────────────────────────
+  EGLL:{'09L':091,'09R':091,'27L':271,'27R':271},
+  EGKK:{'08L':082,'08R':082,'26L':262,'26R':262},
+  EGSS:{'04':040,'22':220},
+  EGGW:{'07':073,'25':253},
+  EGCC:{'05L':055,'05R':055,'23L':235,'23R':235},
+  EGPH:{'06':062,'12':119,'24':242,'30':299},
+  EGPF:{'05':054,'23':234},
+  EGGD:{'09':094,'27':274},
+  EGBB:{'15':151,'33':331},
+  EGNX:{'09':090,'27':270},
+  EIDW:{'10L':100,'10R':100,'16':160,'28L':280,'28R':280,'34':340},
+  EINN:{'06':060,'24':240},
+  // ── BENELUX & FRANCE ──────────────────────────────────────────────
+  EHAM:{'06':058,'09':091,'18C':183,'18L':183,'18R':183,'22':219,'24':238,'27':271,'36C':003,'36L':003,'36R':003},
+  EHRD:{'06':060,'24':240},
+  EBBR:{'07L':073,'07R':073,'25L':253,'25R':253},
+  ELLX:{'06':060,'24':240},
+  LFPG:{'08L':083,'08R':083,'09L':093,'09R':093,'26L':263,'26R':263,'27L':273,'27R':273},
+  LFPO:{'06':062,'08':079,'24':242,'26':259},
+  LFMN:{'04L':040,'04R':040,'22L':220,'22R':220},
+  LFML:{'13L':131,'13R':131,'31L':311,'31R':311},
+  LFBO:{'14L':143,'14R':143,'32L':323,'32R':323},
+  LFLL:{'17L':170,'17R':170,'35L':350,'35R':350},
+  LFBD:{'05':052,'23':232},
+  LFRN:{'10':100,'28':280},
+  // ── IBERIA ────────────────────────────────────────────────────────
+  LEMD:{'14L':143,'14R':143,'18L':180,'18R':180,'32L':323,'32R':323,'36L':360,'36R':360},
+  LEBL:{'02':020,'06L':060,'06R':060,'20':200,'24L':240,'24R':240},
+  LEPA:{'06L':060,'06R':060,'24L':240,'24R':240},
+  LEMG:{'13':130,'31':310},
+  LEAL:{'10':100,'28':280},
+  LEVC:{'12':120,'30':300},
+  LEBB:{'12':122,'30':302},
+  GCFV:{'01':010,'19':190},
+  GCLP:{'03L':031,'03R':031,'21L':211,'21R':211},
+  GCTS:{'07':071,'25':251},
+  GCXO:{'12':120,'30':300},
+  LPPT:{'03':032,'17':173,'21':212,'35':353},
+  LPPR:{'17':173,'35':353},
+  LPFR:{'10':100,'28':280},
+  // ── ITALY ─────────────────────────────────────────────────────────
+  LIRF:{'07':070,'16L':160,'16R':160,'25':250,'34L':340,'34R':340},
+  LIMC:{'17L':170,'17R':170,'35L':350,'35R':350},
+  LILM:{'09':090,'27':270},
+  LIPZ:{'04L':040,'04R':040,'22L':220,'22R':220},
+  LIPE:{'12':120,'30':300},
+  LIMF:{'18':180,'36':360},
+  LIRQ:{'05':052,'23':232},
+  LICC:{'08':080,'26':260},
+  LICJ:{'07':070,'25':250},
+  LIBA:{'13L':131,'13R':131,'31L':311,'31R':311},
+  // ── SCANDINAVIA ───────────────────────────────────────────────────
+  ENGM:{'01L':012,'01R':012,'19L':192,'19R':192},
+  EKCH:{'04L':040,'04R':040,'22L':220,'22R':220},
+  ESGG:{'03':030,'21':210},
+  ESSA:{'01L':010,'01R':010,'08':080,'19L':190,'19R':190,'26':260},
+  EFHK:{'04L':040,'04R':040,'15':150,'22L':220,'22R':220,'33':330},
+  EVRA:{'18':183,'36':003},
+  EETN:{'08':080,'26':260},
+  EYVI:{'02':020,'20':200},
+  // ── EASTERN EUROPE ────────────────────────────────────────────────
+  EPWA:{'11':107,'15':150,'29':287,'33':330},
+  EPKK:{'07L':071,'07R':071,'25L':251,'25R':251},
+  EPGD:{'11':113,'29':293},
+  LKPR:{'06':064,'24':244},
+  LHBP:{'13R':128,'13L':128,'31L':308,'31R':308},
+  LZIB:{'04':040,'22':220},
+  LROP:{'08L':080,'08R':080,'26L':260,'26R':260},
+  LBSF:{'09':090,'27':270},
+  LYBA:{'12':120,'30':300},
+  LDZA:{'05':050,'23':230},
+  LJLJ:{'12':120,'30':300},
+  // ── GREECE & CYPRUS ───────────────────────────────────────────────
+  LGAV:{'03L':031,'03R':031,'21L':211,'21R':211},
+  LGTS:{'10':100,'28':280,'16':160,'34':340},
+  LGKR:{'35':350,'17':170},
+  LGRP:{'07':070,'25':250},
+  LCLK:{'04':040,'22':220},
+  LCPH:{'11':110,'29':290},
+  // ── MIDDLE EAST ───────────────────────────────────────────────────
+  OMDB:{'12L':120,'12R':120,'30L':300,'30R':300},
+  OMDW:{'12L':120,'12R':120,'30L':300,'30R':300},
+  OMAA:{'13L':125,'13R':125,'31L':305,'31R':305},
+  OMSJ:{'12L':120,'12R':120,'30L':300,'30R':300},
+  OTHH:{'16L':160,'16R':160,'34L':340,'34R':340},
+  OERK:{'33L':333,'33R':333,'15L':153,'15R':153},
+  OEJN:{'16L':163,'16R':163,'34L':343,'34R':343},
+  OEDF:{'16L':160,'16R':160,'34L':340,'34R':340},
+  OKBK:{'15L':150,'15R':150,'33L':330,'33R':330},
+  OOMS:{'08L':080,'08R':080,'26L':260,'26R':260},
+  OJAM:{'08L':080,'08R':080,'26L':260,'26R':260},
+  LLBG:{'08':080,'12':120,'26':260,'30':300},
+  LTFM:{'17L':170,'17R':170,'35L':350,'35R':350},
+  LTAI:{'18L':180,'18R':180,'36L':360,'36R':360},
+  LTBA:{'06':060,'24':240},
+  LTAC:{'03L':030,'03R':030,'21L':210,'21R':210},
+  // ── AFRICA ────────────────────────────────────────────────────────
+  HECA:{'05L':052,'05R':052,'23L':232,'23R':232},
+  HESH:{'04':040,'22':220},
+  GMNN:{'17L':170,'17R':170,'35L':350,'35R':350},
+  GMMX:{'10':100,'28':280},
+  DTTA:{'11':110,'29':290},
+  DAAG:{'05':050,'23':230},
+  HAAB:{'07L':074,'07R':074,'25L':254,'25R':254},
+  HKJK:{'06':060,'24':240},
+  FAOR:{'03L':032,'03R':032,'21L':212,'21R':212},
+  FACT:{'01':010,'19':190},
+  FALE:{'05L':050,'05R':050,'23L':230,'23R':230},
+  DNMM:{'18L':180,'18R':180,'36L':360,'36R':360},
+  // ── SOUTH ASIA ────────────────────────────────────────────────────
+  VABB:{'09':090,'14':140,'27':270,'32':320},
+  VIDP:{'10':100,'11':110,'28':280,'29':290},
+  VOBL:{'09L':090,'09R':090,'27L':270,'27R':270},
+  VOHS:{'09L':090,'09R':090,'27L':270,'27R':270},
+  VOMM:{'07':070,'25':250},
+  VECC:{'01L':010,'01R':010,'19L':190,'19R':190},
+  VOCL:{'09':090,'27':270},
+  OPRN:{'12L':120,'12R':120,'30L':300,'30R':300},
+  OPKC:{'07L':072,'07R':072,'25L':252,'25R':252},
+  VCBI:{'04':040,'22':220},
+  VNKT:{'02':020,'20':200},
+  // ── SOUTHEAST ASIA & FAR EAST ─────────────────────────────────────
+  VTBS:{'01L':010,'01R':010,'19L':190,'19R':190},
+  VTBD:{'03L':030,'03R':030,'21L':210,'21R':210},
+  VVTS:{'07L':071,'07R':071,'25L':251,'25R':251},
+  VVNB:{'11L':112,'11R':112,'29L':292,'29R':292},
+  WMKK:{'14L':140,'14R':140,'32L':320,'32R':320},
+  WSSS:{'02C':020,'02L':020,'02R':020,'20C':200,'20L':200,'20R':200},
+  WIII:{'07L':073,'07R':073,'25L':253,'25R':253},
+  WADD:{'09':090,'27':270},
+  RPLL:{'06':060,'24':240},
+  VHHH:{'07L':070,'07R':070,'25L':250,'25R':250},
+  RCTP:{'05L':052,'05R':052,'23L':232,'23R':232},
+  ZBAA:{'01':010,'18L':181,'18R':181,'36L':001,'36R':001},
+  ZBAD:{'11L':113,'11R':113,'29L':293,'29R':293},
+  ZSPD:{'16L':160,'16R':160,'34L':340,'34R':340},
+  ZSSS:{'18L':180,'18R':180,'36L':360,'36R':360},
+  ZGGG:{'02L':020,'02R':020,'20L':200,'20R':200},
+  ZUCK:{'02L':020,'02R':020,'20L':200,'20R':200},
+  RKSI:{'15L':150,'15R':150,'16':160,'33L':330,'33R':330,'34':340},
+  RKSS:{'14L':140,'14R':140,'32L':320,'32R':320},
+  RJTT:{'04':040,'16L':160,'16R':160,'22':220,'34L':340,'34R':340},
+  RJAA:{'16R':160,'34L':340},
+  RJBB:{'06L':060,'06R':060,'24L':240,'24R':240},
+  RJOO:{'14L':140,'14R':140,'32L':320,'32R':320},
+  RJFF:{'16':160,'34':340},
+  // ── NORTH AMERICA ─────────────────────────────────────────────────
+  KJFK:{'04L':040,'04R':040,'13L':131,'13R':131,'22L':220,'22R':220,'31L':311,'31R':311},
+  KLGA:{'04':040,'13':131,'22':220,'31':311},
+  KEWR:{'04L':040,'04R':040,'22L':220,'22R':220,'29':290},
+  KBOS:{'04L':040,'04R':040,'09':090,'15L':150,'15R':150,'22L':220,'22R':220,'27':270,'33L':330,'33R':330},
+  KPHL:{'09L':091,'09R':091,'27L':271,'27R':271},
+  KDCA:{'01':010,'19':190,'04':040,'22':220},
+  KIAD:{'01L':010,'01R':010,'12':120,'19L':190,'19R':190,'30':300},
+  KCLT:{'05':050,'18C':180,'18L':180,'18R':180,'23':230,'36C':360,'36L':360,'36R':360},
+  KATL:{'08L':080,'08R':080,'09L':090,'09R':090,'10':098,'26L':260,'26R':260,'27L':270,'27R':270,'28':278},
+  KMIA:{'08L':082,'08R':082,'09':090,'10':099,'26L':262,'26R':262,'27':270,'28':279},
+  KFLL:{'10L':101,'10R':101,'28L':281,'28R':281},
+  KMCO:{'17L':170,'17R':170,'18L':180,'18R':180,'35L':350,'35R':350,'36L':360,'36R':360},
+  KTPA:{'01L':010,'01R':010,'10':100,'19L':190,'19R':190,'28':280},
+  KORD:{'04R':044,'09L':090,'09R':090,'10L':098,'10C':098,'10R':098,'14L':140,'14R':140,'22L':220,'22R':220,'27L':270,'27R':270,'28C':278,'28R':278,'32L':320,'32R':320},
+  KMDW:{'04L':040,'04R':040,'13C':131,'13L':131,'13R':131,'22L':220,'22R':220,'31C':311,'31L':311,'31R':311},
+  KDFW:{'13L':131,'13R':131,'17C':170,'17L':170,'17R':170,'18L':180,'18R':180,'31L':311,'31R':311,'35C':350,'35L':350,'35R':350,'36L':360,'36R':360},
+  KIAH:{'08L':081,'08R':081,'09':091,'15L':150,'15R':150,'26L':261,'26R':261,'27':271,'33L':330,'33R':330},
+  KHOU:{'04':040,'12L':120,'12R':120,'22':220,'30L':300,'30R':300},
+  KDEN:{'07':070,'08':080,'16L':160,'16R':160,'17L':170,'17R':170,'25':250,'26':260,'34L':340,'34R':340,'35L':350,'35R':350},
+  KPHX:{'07L':074,'07R':074,'08':083,'25L':254,'25R':254,'26':263},
+  KLAS:{'01L':010,'01R':010,'08L':082,'08R':082,'19L':190,'19R':190,'26L':262,'26R':262},
+  KLAX:{'06L':070,'06R':070,'24L':250,'24R':250,'25L':250,'25R':250},
+  KSFO:{'01L':013,'01R':013,'10L':098,'10R':098,'19L':193,'19R':193,'28L':278,'28R':278},
+  KSEA:{'16L':160,'16C':160,'16R':160,'34L':340,'34C':340,'34R':340},
+  KPDX:{'03':030,'10L':100,'10R':100,'21':210,'28L':280,'28R':280},
+  KSAN:{'09':091,'27':271},
+  CYVR:{'08L':080,'08R':080,'26L':260,'26R':260},
+  CYYZ:{'05':051,'06L':060,'06R':060,'23':231,'24L':240,'24R':240,'33':330},
+  CYUL:{'06L':060,'06R':060,'10':100,'24L':240,'24R':240,'28':280},
+  CYYC:{'11':112,'17L':173,'17R':173,'29':292,'35L':353,'35R':353},
+  MMMX:{'05L':051,'05R':051,'23L':231,'23R':231},
+  MMUN:{'12':120,'30':300},
+  // ── LATIN AMERICA ─────────────────────────────────────────────────
+  SBGR:{'09L':091,'09R':091,'27L':271,'27R':271},
+  SBGL:{'10':100,'15':150,'28':280,'33':330},
+  SCEL:{'17L':170,'17R':170,'35L':350,'35R':350},
+  SAEZ:{'11':111,'17':170,'29':291,'35':350},
+  SKBO:{'13L':130,'13R':130,'31L':310,'31R':310},
+  SEQM:{'18':180,'36':360},
+  // ── OCEANIA ───────────────────────────────────────────────────────
+  YSSY:{'16L':163,'16R':163,'34L':343,'34R':343},
+  YMML:{'09':090,'16':160,'27':270,'34':340},
+  YBBN:{'01':010,'14':140,'19':190,'32':320},
+  YPPH:{'03':030,'06':060,'21':210,'24':240},
+  NZAA:{'05L':050,'05R':050,'23L':230,'23R':230},
+  NZCH:{'02':020,'20':200},
+};
+const APDB={
+  // Europa – DACH
+  LSZH:{n:'Zürich',u:1,d:'EU'},LSGG:{n:'Genf',u:1,d:'EU'},LFSB:{n:'Basel-Mulhouse',u:1,d:'EU'},
+  LOWI:{n:'Innsbruck',u:1,d:'EU'},LOWS:{n:'Salzburg',u:1,d:'EU'},LOWW:{n:'Wien',u:1,d:'EU'},LOWG:{n:'Graz',u:1,d:'EU'},LOWK:{n:'Klagenfurt',u:1,d:'EU'},
+  EDDF:{n:'Frankfurt Intl',u:1,d:'EU'},EDDM:{n:'München',u:1,d:'EU'},EDDB:{n:'Berlin Brandenburg',u:1,d:'EU'},
+  EDDH:{n:'Hamburg',u:1,d:'EU'},EDDS:{n:'Stuttgart',u:1,d:'EU'},EDDL:{n:'Düsseldorf',u:1,d:'EU'},
+  EDDK:{n:'Köln/Bonn',u:1,d:'EU'},EDDP:{n:'Leipzig/Halle',u:1,d:'EU'},EDDN:{n:'Nürnberg',u:1,d:'EU'},
+  EDDR:{n:'Saarbrücken',u:1,d:'EU'},EDDT:{n:'Berlin Tegel',u:1,d:'EU'},
+  // Europa – UK & Ireland
+  EGLL:{n:'London Heathrow',u:0,d:'EU'},EGKK:{n:'London Gatwick',u:0,d:'EU'},
+  EGSS:{n:'London Stansted',u:0,d:'EU'},EGGW:{n:'London Luton',u:0,d:'EU'},
+  EGCC:{n:'Manchester',u:0,d:'EU'},EGPH:{n:'Edinburgh',u:0,d:'EU'},EGPF:{n:'Glasgow',u:0,d:'EU'},
+  EGGD:{n:'Bristol',u:0,d:'EU'},EGBB:{n:'Birmingham',u:0,d:'EU'},EGNX:{n:'East Midlands',u:0,d:'EU'},
+  EIDW:{n:'Dublin',u:0,d:'EU'},EINN:{n:'Shannon',u:0,d:'EU'},
+  // Europa – Benelux & Frankreich
+  EHAM:{n:'Amsterdam Schiphol',u:1,d:'EU'},EHRD:{n:'Rotterdam',u:1,d:'EU'},
+  EBBR:{n:'Brussels',u:1,d:'EU'},ELLX:{n:'Luxembourg',u:1,d:'EU'},
+  LFPG:{n:'Paris CDG',u:1,d:'EU'},LFPO:{n:'Paris Orly',u:1,d:'EU'},
+  LFMN:{n:'Nice',u:1,d:'EU'},LFML:{n:'Marseille',u:1,d:'EU'},LFBO:{n:'Toulouse',u:1,d:'EU'},
+  LFLL:{n:'Lyon',u:1,d:'EU'},LFRN:{n:'Rennes',u:1,d:'EU'},LFBD:{n:'Bordeaux',u:1,d:'EU'},
+  // Europa – Iberische Halbinsel
+  LEMD:{n:'Madrid Barajas',u:1,d:'EU'},LEBL:{n:'Barcelona',u:1,d:'EU'},
+  LEPA:{n:'Palma de Mallorca',u:1,d:'EU'},LEMG:{n:'Málaga',u:1,d:'EU'},
+  LEAL:{n:'Alicante',u:1,d:'EU'},LEVC:{n:'Valencia',u:1,d:'EU'},LESO:{n:'San Sebastián',u:1,d:'EU'},
+  LEBB:{n:'Bilbao',u:1,d:'EU'},GCFV:{n:'Fuerteventura',u:0,d:'EU'},GCLP:{n:'Gran Canaria',u:0,d:'EU'},
+  GCTS:{n:'Teneriffa Süd',u:0,d:'EU'},GCXO:{n:'Teneriffa Nord',u:0,d:'EU'},
+  LPPT:{n:'Lissabon',u:0,d:'EU'},LPPR:{n:'Porto',u:0,d:'EU'},LPFR:{n:'Faro',u:0,d:'EU'},
+  // Europa – Italien
+  LIRF:{n:'Rom Fiumicino',u:1,d:'EU'},LIMC:{n:'Mailand Malpensa',u:1,d:'EU'},
+  LILM:{n:'Mailand Linate',u:1,d:'EU'},LIPZ:{n:'Venedig',u:1,d:'EU'},
+  LIPE:{n:'Bologna',u:1,d:'EU'},LIMF:{n:'Turin',u:1,d:'EU'},LIRQ:{n:'Florenz',u:1,d:'EU'},
+  LIBR:{n:'Brindisi',u:1,d:'EU'},LICC:{n:'Catania',u:1,d:'EU'},LICJ:{n:'Palermo',u:1,d:'EU'},
+  LIBP:{n:'Pescara',u:1,d:'EU'},LIBA:{n:'Bari',u:1,d:'EU'},
+  // Europa – Skandinavien
+  ENGM:{n:'Oslo Gardermoen',u:1,d:'EU'},EKCH:{n:'Kopenhagen',u:1,d:'EU'},
+  ESGG:{n:'Göteborg',u:1,d:'EU'},ESSA:{n:'Stockholm Arlanda',u:1,d:'EU'},
+  EFHK:{n:'Helsinki',u:2,d:'EU'},EVRA:{n:'Riga',u:2,d:'EU'},EETN:{n:'Tallinn',u:2,d:'EU'},EYVI:{n:'Vilnius',u:2,d:'EU'},
+  // Europa – Osteuropa
+  EPWA:{n:'Warschau',u:1,d:'EU'},EPKK:{n:'Krakau',u:1,d:'EU'},EPGD:{n:'Danzig',u:1,d:'EU'},
+  LKPR:{n:'Prag',u:1,d:'EU'},LHBP:{n:'Budapest',u:1,d:'EU'},LZIB:{n:'Bratislava',u:1,d:'EU'},
+  LROP:{n:'Bukarest',u:2,d:'EU'},LBSF:{n:'Sofia',u:2,d:'EU'},LYBA:{n:'Belgrad',u:1,d:'EU'},
+  LDZA:{n:'Zagreb',u:1,d:'EU'},LJLJ:{n:'Ljubljana',u:1,d:'EU'},
+  // Europa – Griechenland & Zypern
+  LGAV:{n:'Athen',u:2,d:'EU'},LGTS:{n:'Thessaloniki',u:2,d:'EU'},
+  LGKR:{n:'Korfu',u:2,d:'EU'},LGRP:{n:'Rhodos',u:2,d:'EU'},LGSM:{n:'Samos',u:2,d:'EU'},
+  LCLK:{n:'Larnaka',u:2,d:'EU'},LCPH:{n:'Paphos',u:2,d:'EU'},
+  // Naher Osten
+  OMDB:{n:'Dubai Intl',u:4,d:'NONE'},OMDW:{n:'Dubai Al Maktoum',u:4,d:'NONE'},
+  OMAA:{n:'Abu Dhabi',u:4,d:'NONE'},OMSJ:{n:'Sharjah',u:4,d:'NONE'},
+  OTHH:{n:'Doha Hamad',u:3,d:'NONE'},OERK:{n:'Riyadh KKIA',u:3,d:'NONE'},
+  OEJN:{n:'Jeddah',u:3,d:'NONE'},OEDF:{n:'Dammam',u:3,d:'NONE'},
+  OKBK:{n:'Kuwait',u:3,d:'NONE'},OOMS:{n:'Muskat',u:4,d:'NONE'},
+  OJAM:{n:'Amman',u:2,d:'NONE'},LLBG:{n:'Tel Aviv',u:2,d:'EU'},
+  LTFM:{n:'Istanbul IST',u:3,d:'NONE'},LTAI:{n:'Antalya',u:3,d:'NONE'},
+  LTBA:{n:'Istanbul SAW',u:3,d:'NONE'},LTAC:{n:'Ankara',u:3,d:'NONE'},
+  // Afrika
+  HECA:{n:'Kairo',u:2,d:'NONE'},HESH:{n:'Sharm el-Sheikh',u:2,d:'NONE'},HEAX:{n:'Alexandria',u:2,d:'NONE'},
+  GMNN:{n:'Casablanca',u:0,d:'NONE'},GMMX:{n:'Marrakesch',u:0,d:'NONE'},
+  DTTA:{n:'Tunis',u:1,d:'NONE'},DAAG:{n:'Algier',u:1,d:'NONE'},HLLT:{n:'Tripolis',u:2,d:'NONE'},
+  HAAB:{n:'Addis Abeba',u:3,d:'NONE'},HKJK:{n:'Nairobi',u:3,d:'NONE'},
+  FAOR:{n:'Johannesburg',u:2,d:'NONE'},FACT:{n:'Kapstadt',u:2,d:'NONE'},FALE:{n:'Durban',u:2,d:'NONE'},
+  DNMM:{n:'Lagos',u:1,d:'NONE'},DXXX:{n:'Lomé',u:0,d:'NONE'},
+  // Asien – Süd
+  VABB:{n:'Mumbai',u:5,d:'NONE'},VIDP:{n:'Delhi',u:5,d:'NONE'},VOBL:{n:'Bengaluru',u:5,d:'NONE'},
+  VOHS:{n:'Hyderabad',u:5,d:'NONE'},VOMM:{n:'Chennai',u:5,d:'NONE'},VECC:{n:'Kolkata',u:5,d:'NONE'},
+  VOCL:{n:'Kochi',u:5,d:'NONE'},VOGO:{n:'Goa',u:5,d:'NONE'},
+  OPRN:{n:'Islamabad',u:5,d:'NONE'},OPKC:{n:'Karachi',u:5,d:'NONE'},
+  VGZR:{n:'Dhaka',u:6,d:'NONE'},VCBI:{n:'Colombo',u:5,d:'NONE'},VNKT:{n:'Kathmandu',u:5,d:'NONE'},
+  // Asien – Südost & Fernost
+  VTBS:{n:'Bangkok Suvarnabhumi',u:7,d:'NONE'},VTBD:{n:'Bangkok Don Mueang',u:7,d:'NONE'},
+  VVTS:{n:'Ho-Chi-Minh-Stadt',u:7,d:'NONE'},VVNB:{n:'Hanoi',u:7,d:'NONE'},
+  WMKK:{n:'Kuala Lumpur',u:8,d:'NONE'},WSSS:{n:'Singapur',u:8,d:'NONE'},
+  WIII:{n:'Jakarta CGK',u:7,d:'NONE'},WADD:{n:'Bali Denpasar',u:8,d:'NONE'},
+  RPLL:{n:'Manila',u:8,d:'NONE'},VHHH:{n:'Hongkong',u:8,d:'NONE'},
+  VMMC:{n:'Macau',u:8,d:'NONE'},RCTP:{n:'Taipei Taoyuan',u:8,d:'NONE'},
+  ZBAA:{n:'Peking Capital',u:8,d:'NONE'},ZBAD:{n:'Peking Daxing',u:8,d:'NONE'},
+  ZSPD:{n:'Shanghai Pudong',u:8,d:'NONE'},ZSSS:{n:'Shanghai Hongqiao',u:8,d:'NONE'},
+  ZGGG:{n:'Guangzhou',u:8,d:'NONE'},ZUCK:{n:'Chengdu Tianfu',u:8,d:'NONE'},
+  RKSI:{n:'Seoul Incheon',u:9,d:'NONE'},RKSS:{n:'Seoul Gimpo',u:9,d:'NONE'},
+  RJTT:{n:'Tokio Haneda',u:9,d:'NONE'},RJAA:{n:'Tokio Narita',u:9,d:'NONE'},
+  RJBB:{n:'Osaka Kansai',u:9,d:'NONE'},RJOO:{n:'Osaka Itami',u:9,d:'NONE'},RJFF:{n:'Fukuoka',u:9,d:'NONE'},
+  // Nordamerika
+  KJFK:{n:'New York JFK',u:-5,d:'US'},KLGA:{n:'New York LaGuardia',u:-5,d:'US'},
+  KEWR:{n:'Newark',u:-5,d:'US'},KBOS:{n:'Boston',u:-5,d:'US'},
+  KPHL:{n:'Philadelphia',u:-5,d:'US'},KDCA:{n:'Washington Reagan',u:-5,d:'US'},
+  KIAD:{n:'Washington Dulles',u:-5,d:'US'},KCLT:{n:'Charlotte',u:-5,d:'US'},
+  KATL:{n:'Atlanta',u:-5,d:'US'},KMIA:{n:'Miami',u:-5,d:'US'},
+  KFLL:{n:'Fort Lauderdale',u:-5,d:'US'},KMCO:{n:'Orlando',u:-5,d:'US'},
+  KTPA:{n:'Tampa',u:-5,d:'US'},KORD:{n:"Chicago O'Hare",u:-6,d:'US'},
+  KMDW:{n:'Chicago Midway',u:-6,d:'US'},KDFW:{n:'Dallas Fort Worth',u:-6,d:'US'},
+  KIAH:{n:'Houston Intercontinental',u:-6,d:'US'},KHOU:{n:'Houston Hobby',u:-6,d:'US'},
+  KDEN:{n:'Denver',u:-7,d:'US'},KPHX:{n:'Phoenix',u:-7,d:'NONE'},
+  KLAS:{n:'Las Vegas',u:-8,d:'US'},KLAX:{n:'Los Angeles',u:-8,d:'US'},
+  KSFO:{n:'San Francisco',u:-8,d:'US'},KSEA:{n:'Seattle',u:-8,d:'US'},
+  KPDX:{n:'Portland',u:-8,d:'US'},KSAN:{n:'San Diego',u:-8,d:'US'},
+  CYVR:{n:'Vancouver',u:-8,d:'US'},CYYZ:{n:'Toronto',u:-5,d:'US'},
+  CYUL:{n:'Montreal',u:-5,d:'US'},CYYC:{n:'Calgary',u:-7,d:'US'},
+  MMMX:{n:'Mexico City',u:-6,d:'US'},MMUN:{n:'Cancún',u:-5,d:'NONE'},
+  // Karibik & Latam
+  MDSD:{n:'Santo Domingo',u:-4,d:'NONE'},TBPB:{n:'Barbados',u:-4,d:'NONE'},
+  TTPP:{n:'Trinidad Port of Spain',u:-4,d:'NONE'},
+  SBGR:{n:'São Paulo Guarulhos',u:-3,d:'NONE'},SBGL:{n:'Rio de Janeiro',u:-3,d:'NONE'},
+  SCEL:{n:'Santiago',u:-3,d:'NONE'},SAEZ:{n:'Buenos Aires Ezeiza',u:-3,d:'NONE'},
+  SKBO:{n:'Bogotá',u:-5,d:'NONE'},SEQM:{n:'Quito',u:-5,d:'NONE'},
+  // Ozeanien
+  YSSY:{n:'Sydney',u:10,d:'AU'},YMML:{n:'Melbourne',u:10,d:'AU'},
+  YBBN:{n:'Brisbane',u:10,d:'NONE'},YPPH:{n:'Perth',u:8,d:'AU'},
+  NZAA:{n:'Auckland',u:12,d:'NZ'},NZCH:{n:'Christchurch',u:12,d:'NZ'},
+};
+
+// CSS var helper
+// ── AIRPORT NAME LOOKUP ───────────────────────────────────
+function showApName(prefix) {
+  const icao = document.getElementById(prefix+'-icao').value.toUpperCase();
+  const el = document.getElementById(prefix+'-apname');
+  if (!el) return;
+  const ap = APDB[icao];
+  const iata = IATA[icao];
+  if (ap) {
+    el.textContent = ap.n + (iata ? ' ('+iata+')' : '');
+    el.style.color = 'var(--mu2)';
+  } else if (icao.length === 4) {
+    el.textContent = 'Unbekannter Flughafen';
+    el.style.color = 'var(--c0)';
+  } else {
+    el.textContent = '';
+  }
+}
+
+// HiDPI canvas helper
+function hiDPI(cv) {
+  const dpr = window.devicePixelRatio || 1;
+  const ctx = cv.getContext('2d');
+  // Use stored CSS size (set once from attribute, never from getBoundingClientRect which can be 0)
+  if (!cv._cssW) {
+    cv._cssW = parseInt(cv.getAttribute('width'))  || 200;
+    cv._cssH = parseInt(cv.getAttribute('height')) || 200;
+  }
+  const cssW = cv._cssW, cssH = cv._cssH;
+  const targetW = Math.round(cssW * dpr);
+  const targetH = Math.round(cssH * dpr);
+  if (cv.width !== targetW || cv.height !== targetH) {
+    cv.width  = targetW;
+    cv.height = targetH;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  return { ctx, W: cssW, H: cssH };
+}
+
+const G=document.documentElement;
+const cs=n=>getComputedStyle(G).getPropertyValue(n).trim();
+const CV={ab:cs('--ab'),ab2:cs('--ab2'),bo:cs('--bo'),bo2:cs('--bo2'),ft:cs('--ft'),
+  c0:cs('--c0'),c1:cs('--c1'),c2:cs('--c2'),mu:cs('--mu'),mu2:cs('--mu2'),tx:cs('--tx'),
+  bg3:cs('--bg3'),bg4:cs('--bg4')};
+
+// ── TABS ──────────────────────────────────────────────────
+function showTab(t){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  const c=t==='airbus'?'ab':t==='boeing'?'bo':t==='eta'?'ft':'sb';
+  document.querySelector('.tab.'+c).classList.add('active');
+  if(t==='eta'){calcETA();startETAClock();}
+  else if(t==='airbus')calcAB();
+  else if(t==='boeing')calcBO();
+}
+
+// ── DROPDOWNS ─────────────────────────────────────────────
+function updAbMod(){
+  const f=document.getElementById('ab-fam').value;
+  const m=document.getElementById('ab-mod'),e=document.getElementById('ab-eng');
+  m.innerHTML='<option value="">— wählen —</option>';
+  e.innerHTML='<option value="">—</option>';
+  if(f)Object.keys(ABM[f]).forEach(k=>m.innerHTML+=`<option>${k}</option>`);
+  calcAB();
+}
+function updAbEng(){
+  const f=document.getElementById('ab-fam').value,mod=document.getElementById('ab-mod').value;
+  const e=document.getElementById('ab-eng');
+  e.innerHTML='<option value="">—</option>';
+  if(f&&mod&&ABM[f][mod])ABM[f][mod].forEach(k=>e.innerHTML+=`<option>${k}</option>`);
+}
+function updBoMod(){
+  const f=document.getElementById('bo-fam').value;
+  const m=document.getElementById('bo-mod'),e=document.getElementById('bo-eng');
+  m.innerHTML='<option value="">— wählen —</option>';
+  e.innerHTML='<option value="">—</option>';
+  if(f)Object.keys(BOM[f]).forEach(k=>m.innerHTML+=`<option>${k}</option>`);
+  calcBO();
+}
+function updBoEng(){
+  const f=document.getElementById('bo-fam').value,mod=document.getElementById('bo-mod').value;
+  const e=document.getElementById('bo-eng');
+  e.innerHTML='<option value="">—</option>';
+  if(f&&mod&&BOM[f][mod])BOM[f][mod].forEach(k=>e.innerHTML+=`<option>${k}</option>`);
+}
+
+// ── RUNWAY ─────────────────────────────────────────────────
+let AB_HDG=NaN,BO_HDG=NaN;
+function updRWY(p){
+  const icao=document.getElementById(p+'-icao').value;
+  const sel=document.getElementById(p+'-rwy');
+  sel.innerHTML='<option value="">— wählen —</option>';
+  if(RWY[icao])Object.keys(RWY[icao]).forEach(r=>sel.innerHTML+=`<option value="${r}">${r} (${RWY[icao][r]}°)</option>`);
+}
+function pickRWY(p){
+  const icao=document.getElementById(p+'-icao').value;
+  const rwy=document.getElementById(p+'-rwy').value;
+  const hdg=(RWY[icao]&&rwy&&RWY[icao][rwy]!==undefined)?RWY[icao][rwy]:NaN;
+  if(p==='ab')AB_HDG=hdg;else BO_HDG=hdg;
+}
+
+// ── WIND ───────────────────────────────────────────────────
+function wCalc(d,s,h){
+  if(isNaN(d)||isNaN(s)||isNaN(h))return null;
+  const a=(d-h)*Math.PI/180;
+  return{hw:+(s*Math.cos(a)).toFixed(1),cw:+(s*Math.sin(a)).toFixed(1)};
+}
+
+// ── CLB LOGIC ──────────────────────────────────────────────
+function clbCalc(gw,mtow,perf,oat,qnh,hw){
+  const heavy=gw>=mtow*.96,modH=gw>=mtow*.88;
+  const hot=!isNaN(oat)&&oat>35,modHot=!isNaN(oat)&&oat>25;
+  const lQnh=!isNaN(qnh)&&qnh<1005,tw=!isNaN(hw)&&hw<-5;
+  const lPerf=!isNaN(perf)&&!isNaN(oat)&&perf<oat+15;
+  const mPerf=!isNaN(perf)&&!isNaN(oat)&&perf<oat+25;
+  let clb;
+  if((heavy&&(hot||lQnh||tw))||lPerf)clb=0;
+  else if((modH&&modHot)||mPerf)clb=1;
+  else clb=2;
+  return{clb,heavy,modH,hot,modHot,lQnh,tw,lPerf,mPerf};
+}
+
+// ── AIRBUS ─────────────────────────────────────────────────
+function calcAB(){
+  const gw=parseFloat(document.getElementById('ab-gw').value);
+  const flex=parseFloat(document.getElementById('ab-flex').value);
+  const oat=parseFloat(document.getElementById('ab-oat').value);
+  const qnh=parseFloat(document.getElementById('ab-qnh').value);
+  const wdir=parseFloat(document.getElementById('ab-wdir').value);
+  const wspd=parseFloat(document.getElementById('ab-wspd').value);
+  const mod=document.getElementById('ab-mod').value;
+  const mtow=ABMTOW[mod]||100;
+  const w=wCalc(wdir,wspd,AB_HDG);
+  const hw=w?w.hw:NaN,cw=w?w.cw:NaN;
+
+  drawRose('ab-rose',wdir,wspd,AB_HDG,w,CV.ab);
+  setWChips('ab',hw,cw);
+
+  if(!mod||isNaN(gw)){
+    drawGauge('ab-gauge',null,CV.ab);
+    drawWBar('ab-wb',NaN,NaN,CV.ab,'t');
+    setClb('ab',null,'Daten eingeben','Flugzeug, Gewicht und Wetter eingeben.',[]);
+    return;
+  }
+  const r=clbCalc(gw,mtow,flex,oat,qnh,hw);
+  drawGauge('ab-gauge',r.clb,CV.ab);
+  drawWBar('ab-wb',gw,mtow,CV.ab,'t');
+  const pills=[];
+  if(!isNaN(gw))pills.push({l:'GW',v:gw+'t',w:r.heavy});
+  if(!isNaN(flex))pills.push({l:'FLEX',v:flex+'°C',w:r.lPerf});
+  if(!isNaN(oat))pills.push({l:'OAT',v:oat+'°C',w:r.hot});
+  if(!isNaN(qnh))pills.push({l:'QNH',v:qnh+' hPa',w:r.lQnh});
+  if(!isNaN(hw))pills.push({l:'HW',v:(hw>=0?'+':'')+hw+' kt',w:r.tw});
+  const T=['⚠ CLB 0 – Volle Leistung','◎ CLB 1 – Normale Bedingungen','✓ CLB 2 – Reduzierbar'];
+  const CO=[
+    'Einschränkung: '+[r.heavy?'Schweres GW':'',r.hot?'Hohe OAT':'',r.lQnh?'Niedriger QNH':'',r.tw?'Rückenwind':'',r.lPerf?'FLEX zu niedrig':''].filter(Boolean).join(' · ')+'.',
+    'Moderate Bedingungen – CLB 1 empfohlen.',
+    'Gute Bedingungen – CLB 2 und erhöhte FLEX möglich.'
+  ];
+  setClb('ab',r.clb,T[r.clb],CO[r.clb],pills);
+}
+
+// ── BOEING ─────────────────────────────────────────────────
+function l2k(){const v=parseFloat(document.getElementById('bo-lbs').value);if(!isNaN(v))document.getElementById('bo-kg').value=Math.round(v*0.453592);}
+function k2l(){const v=parseFloat(document.getElementById('bo-kg').value);if(!isNaN(v))document.getElementById('bo-lbs').value=Math.round(v/0.453592);}
+
+function calcBO(){
+  const gw=parseFloat(document.getElementById('bo-lbs').value);
+  const at=parseFloat(document.getElementById('bo-at').value);
+  const oat=parseFloat(document.getElementById('bo-oat').value);
+  const qnh=parseFloat(document.getElementById('bo-qnh').value);
+  const wdir=parseFloat(document.getElementById('bo-wdir').value);
+  const wspd=parseFloat(document.getElementById('bo-wspd').value);
+  const mod=document.getElementById('bo-mod').value;
+  const mtow=BOMTOW[mod]||100000;
+  const w=wCalc(wdir,wspd,BO_HDG);
+  const hw=w?w.hw:NaN,cw=w?w.cw:NaN;
+
+  drawRose('bo-rose',wdir,wspd,BO_HDG,w,CV.bo);
+  setWChips('bo',hw,cw);
+
+  if(!mod||isNaN(gw)){
+    drawGauge('bo-gauge',null,CV.bo);
+    drawWBar('bo-wb',NaN,NaN,CV.bo,'lbs');
+    setClb('bo',null,'Daten eingeben','Flugzeug und Gewicht eingeben.',[]);
+    return;
+  }
+  const r=clbCalc(gw,mtow,at,oat,qnh,hw);
+  drawGauge('bo-gauge',r.clb,CV.bo);
+  drawWBar('bo-wb',gw,mtow,CV.bo,'lbs');
+  const gwKg=Math.round(gw*0.453592);
+  const pills=[];
+  if(!isNaN(gw))pills.push({l:'GW',v:Math.round(gw/1000)+'k lbs/'+Math.round(gwKg/1000)+'t',w:r.heavy});
+  if(!isNaN(at))pills.push({l:'ASSUMED',v:at+'°C',w:r.lPerf});
+  if(!isNaN(oat))pills.push({l:'OAT',v:oat+'°C',w:r.hot});
+  if(!isNaN(qnh))pills.push({l:'QNH',v:qnh+' hPa',w:r.lQnh});
+  if(!isNaN(hw))pills.push({l:'HW',v:(hw>=0?'+':'')+hw+' kt',w:r.tw});
+  const T=['⚠ CLB 0 – Volle Leistung','◎ CLB 1 – Normale Bedingungen','✓ CLB 2 – Reduzierbar'];
+  const CO=[
+    'Einschränkung: '+[r.heavy?'Schweres GW':'',r.hot?'Hohe OAT':'',r.lQnh?'Niedriger QNH':'',r.tw?'Rückenwind':'',r.lPerf?'Assumed Temp zu niedrig':''].filter(Boolean).join(' · ')+'.',
+    'Moderate Bedingungen.',
+    'Gute Bedingungen – hohe Assumed Temp möglich.'
+  ];
+  setClb('bo',r.clb,T[r.clb],CO[r.clb],pills);
+}
+
+// ── UI HELPERS ─────────────────────────────────────────────
+function setWChips(p,hw,cw){
+  const he=document.getElementById(p+'-hw'),ce=document.getElementById(p+'-cw');
+  if(!isNaN(hw)){
+    he.textContent=(hw>=0?'+':'')+hw+' kt';
+    he.className='wval '+(hw>=0?'hwp':'hwn');
+    ce.textContent=Math.abs(cw)+' kt '+(cw>=0?'L':'R');
+    ce.className='wval';
+  }else{he.textContent='—';he.className='wval';ce.textContent='—';ce.className='wval';}
+}
+function setClb(p,clb,title,comment,pills){
+  document.getElementById(p+'-ctitle').textContent=title;
+  document.getElementById(p+'-ccomment').textContent=comment;
+  document.getElementById(p+'-pills').innerHTML=pills.map(pl=>
+    `<span class="pill${pl.w?' w':''}">${pl.l}: ${pl.v}</span>`).join('');
+}
+
+// ── CANVAS: GAUGE ──────────────────────────────────────────
+function drawGauge(id,clb,accent){
+  const cv=document.getElementById(id);if(!cv)return;
+  const {ctx,W,H}=hiDPI(cv);
+  const cx=W/2,cy=H-10,R=72;
+  ctx.clearRect(0,0,W,H);
+
+  const segs=[
+    {s:Math.PI,e:Math.PI*1.33,bg:'rgba(232,85,85,.18)',fg:CV.c0},
+    {s:Math.PI*1.33,e:Math.PI*1.67,bg:'rgba(232,195,45,.18)',fg:CV.c1},
+    {s:Math.PI*1.67,e:Math.PI*2,bg:'rgba(45,196,138,.18)',fg:CV.c2},
+  ];
+  // Draw all track segments
+  segs.forEach(s=>{
+    ctx.beginPath();ctx.arc(cx,cy,R,s.s,s.e);
+    ctx.strokeStyle=s.bg;ctx.lineWidth=13;ctx.lineCap='butt';ctx.stroke();
+  });
+
+  // Active segment with glow
+  if(clb!==null){
+    const act=segs[2-clb];
+    ctx.beginPath();ctx.arc(cx,cy,R,act.s,act.e);
+    ctx.strokeStyle=act.fg;ctx.lineWidth=13;ctx.lineCap='round';
+    ctx.shadowColor=act.fg;ctx.shadowBlur=18;ctx.stroke();
+    ctx.shadowBlur=0;
+  }
+
+  // Tick marks
+  for(let i=0;i<=6;i++){
+    const a=Math.PI+i*(Math.PI/6);
+    ctx.beginPath();
+    ctx.moveTo(cx+(R-8)*Math.cos(a),cy+(R-8)*Math.sin(a));
+    ctx.lineTo(cx+(R+2)*Math.cos(a),cy+(R+2)*Math.sin(a));
+    ctx.strokeStyle='rgba(255,255,255,.15)';ctx.lineWidth=1;ctx.stroke();
+  }
+
+  // CLB numbers on arc
+  ctx.font='bold 11px JetBrains Mono,monospace';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  [{a:Math.PI*1.17,t:'0',i:0},{a:Math.PI*1.5,t:'1',i:1},{a:Math.PI*1.83,t:'2',i:2}].forEach(l=>{
+    const lx=cx+(R+20)*Math.cos(l.a),ly=cy+(R+20)*Math.sin(l.a);
+    ctx.fillStyle=(clb!==null&&clb===l.i)?segs[2-l.i].fg:CV.mu;
+    ctx.fillText(l.t,lx,ly);
+  });
+
+  // Center display
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  if(clb!==null){
+    ctx.font='bold 28px Barlow Condensed,sans-serif';
+    ctx.fillStyle=segs[2-clb].fg;
+    ctx.shadowColor=segs[2-clb].fg;ctx.shadowBlur=10;
+    ctx.fillText('CLB '+clb,cx,cy-32);ctx.shadowBlur=0;
+    ctx.font='10px Barlow,sans-serif';ctx.fillStyle=CV.mu;
+    ctx.fillText(['FULL THRUST','REDUCED','DERATE'][clb],cx,cy-14);
+  }else{
+    ctx.font='13px Barlow,sans-serif';ctx.fillStyle=CV.mu;
+    ctx.fillText('—',cx,cy-26);
+  }
+}
+
+// ── CANVAS: WIND ROSE ──────────────────────────────────────
+function drawRose(id,wdir,wspd,hdg,wind,accent){
+  const cv=document.getElementById(id);if(!cv)return;
+  const {ctx,W,H}=hiDPI(cv);
+  const cx=W/2,cy=H/2,R=70;
+  ctx.clearRect(0,0,W,H);
+
+  // Rings
+  [R,R*0.55].forEach(r=>{
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1;ctx.stroke();
+  });
+  // Cross hairs
+  ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(cx-R,cy);ctx.lineTo(cx+R,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,cy-R);ctx.lineTo(cx,cy+R);ctx.stroke();
+
+  // Cardinal labels
+  ctx.font='bold 10px Barlow Condensed,sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  [['N',0],['E',90],['S',180],['W',270]].forEach(([l,a])=>{
+    const rad=(a-90)*Math.PI/180;
+    ctx.fillStyle=l==='N'?'rgba(255,255,255,.5)':CV.mu;
+    ctx.fillText(l,cx+(R+11)*Math.cos(rad),cy+(R+11)*Math.sin(rad));
+  });
+
+  // Runway centerline
+  if(!isNaN(hdg)){
+    const ra=(hdg-90)*Math.PI/180;
+    ctx.save();ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(cx-(R-4)*Math.cos(ra),cy-(R-4)*Math.sin(ra));
+    ctx.lineTo(cx+(R-4)*Math.cos(ra),cy+(R-4)*Math.sin(ra));
+    ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=2.5;ctx.stroke();
+    ctx.restore();
+    // RWY label
+    ctx.font='bold 8px Barlow Condensed,sans-serif';
+    ctx.fillStyle='rgba(255,255,255,.35)';
+    const lx=cx+(R-8)*Math.cos(ra),ly=cy+(R-8)*Math.sin(ra);
+    ctx.fillText('RWY',lx,ly);
+  }
+
+  // Wind arrow
+  if(!isNaN(wdir)&&!isNaN(wspd)&&wspd>0){
+    const speed=Math.min(wspd,60);
+    const len=R*0.2+speed*(R*0.75/60);
+    const wa=(wdir-90)*Math.PI/180;
+    const ox=cx-len*0.25*Math.cos(wa),oy=cy-len*0.25*Math.sin(wa);
+    const ex=cx+len*0.75*Math.cos(wa),ey=cy+len*0.75*Math.sin(wa);
+
+    ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ex,ey);
+    ctx.strokeStyle=accent;ctx.lineWidth=2.5;ctx.lineCap='round';
+    ctx.shadowColor=accent;ctx.shadowBlur=10;ctx.stroke();ctx.shadowBlur=0;
+
+    // Arrowhead
+    const hl=10,ha=0.42;
+    ctx.beginPath();
+    ctx.moveTo(ex,ey);
+    ctx.lineTo(ex-hl*Math.cos(wa-ha),ey-hl*Math.sin(wa-ha));
+    ctx.moveTo(ex,ey);
+    ctx.lineTo(ex-hl*Math.cos(wa+ha),ey-hl*Math.sin(wa+ha));
+    ctx.strokeStyle=accent;ctx.lineWidth=2;ctx.stroke();
+
+    // Speed label outside ring
+    ctx.font='bold 11px JetBrains Mono,monospace';
+    ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillStyle=accent;ctx.fillText(Math.round(wspd)+' kt',cx,cy+R+4);
+    ctx.textBaseline='middle';
+  }
+
+  // HW indicator (small arc)
+  if(wind&&!isNaN(wind.hw)&&wind.hw!==0){
+    const norm=Math.max(-1,Math.min(1,wind.hw/40));
+    ctx.beginPath();ctx.arc(cx,cy,R*0.32,0,Math.PI*2*Math.abs(norm));
+    ctx.strokeStyle=wind.hw>0?CV.c2:CV.c0;ctx.lineWidth=4;ctx.lineCap='round';ctx.stroke();
+  }
+}
+
+// ── CANVAS: WEIGHT BAR ─────────────────────────────────────
+function drawWBar(id,gw,mtow,accent,unit){
+  const cv=document.getElementById(id);if(!cv)return;
+  const {ctx,W,H}=hiDPI(cv);
+  ctx.clearRect(0,0,W,H);
+  if(isNaN(gw)||isNaN(mtow)){
+    ctx.font='12px Barlow,sans-serif';ctx.fillStyle=CV.mu;ctx.textAlign='center';
+    ctx.fillText('GW eingeben',W/2,H/2);return;
+  }
+
+  const pct=Math.min(1,gw/mtow);
+  const pad=14,bh=20,by=(H-bh)/2,bw=W-pad*2;
+
+  // Zone backgrounds
+  [{u:.75,c:'rgba(45,196,138,.18)',l:'Leicht'},{u:.90,c:'rgba(232,195,45,.18)',l:'Moderat'},{u:1,c:'rgba(232,85,85,.18)',l:'Schwer'}]
+  .forEach((z,i,a)=>{
+    const prev=i?a[i-1].u:0,x=pad+prev*bw,w=(z.u-prev)*bw;
+    ctx.fillStyle=z.c;ctx.fillRect(x,by,w,bh);
+    ctx.font='9px Barlow Condensed,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='rgba(255,255,255,.22)';ctx.fillText(z.l,x+w/2,by+bh/2);
+  });
+
+  // Border
+  ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;ctx.strokeRect(pad,by,bw,bh);
+
+  // GW fill
+  ctx.globalAlpha=.8;ctx.fillStyle=accent;ctx.fillRect(pad,by,pct*bw,bh);ctx.globalAlpha=1;
+
+  // GW marker line + glow
+  const gx=pad+pct*bw;
+  ctx.shadowColor=accent;ctx.shadowBlur=12;
+  ctx.beginPath();ctx.moveTo(gx,by-5);ctx.lineTo(gx,by+bh+5);
+  ctx.strokeStyle=accent;ctx.lineWidth=2;ctx.stroke();ctx.shadowBlur=0;
+
+  // MTOW dashed line
+  ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(pad+bw,by-5);ctx.lineTo(pad+bw,by+bh+5);
+  ctx.strokeStyle='rgba(232,85,85,.5)';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Labels
+  ctx.textBaseline='middle';
+  ctx.font='bold 13px JetBrains Mono,monospace';ctx.textAlign='left';ctx.fillStyle=accent;
+  const gl=unit==='t'?gw.toFixed(0)+' t':Math.round(gw/1000)+'k lbs';
+  ctx.fillText(gl,pad,by-14);
+
+  ctx.font='10px Barlow,sans-serif';ctx.fillStyle=CV.mu2;
+  ctx.fillText(Math.round(pct*100)+'% of MTOW',pad,by+bh+14);
+
+  ctx.textAlign='right';ctx.fillStyle='rgba(232,85,85,.65)';
+  const ml=unit==='t'?mtow+' t MTOW':Math.round(mtow/1000)+'k lbs MTOW';
+  ctx.fillText(ml,pad+bw,by-14);
+
+  // Pct ticks
+  ctx.font='8px JetBrains Mono,monospace';ctx.fillStyle=CV.mu;ctx.textAlign='center';
+  [75,90,100].forEach(p=>ctx.fillText(p+'%',pad+(p/100)*bw,by+bh+28));
+}
+
+const IATA={
+  LSZH:'ZRH',LSGG:'GVA',LFSB:'BSL',LOWI:'INN',LOWS:'SZG',LOWW:'VIE',LOWG:'GRZ',LOWK:'KLU',
+  EDDF:'FRA',EDDM:'MUC',EDDB:'BER',EDDH:'HAM',EDDS:'STR',EDDL:'DUS',EDDK:'CGN',EDDP:'LEJ',EDDN:'NUE',
+  EGLL:'LHR',EGKK:'LGW',EGSS:'STN',EGGW:'LTN',EGCC:'MAN',EGPH:'EDI',EGPF:'GLA',EGGD:'BRS',EGBB:'BHX',EGNX:'EMA',
+  EIDW:'DUB',EINN:'SNN',
+  EHAM:'AMS',EHRD:'RTM',EBBR:'BRU',ELLX:'LUX',
+  LFPG:'CDG',LFPO:'ORY',LFMN:'NCE',LFML:'MRS',LFBO:'TLS',LFLL:'LYS',LFBD:'BOD',
+  LEMD:'MAD',LEBL:'BCN',LEPA:'PMI',LEMG:'AGP',LEAL:'ALC',LEVC:'VLC',LEBB:'BIO',
+  GCFV:'FUE',GCLP:'LPA',GCTS:'TFS',GCXO:'TFN',LPPT:'LIS',LPPR:'OPO',LPFR:'FAO',
+  LIRF:'FCO',LIMC:'MXP',LILM:'LIN',LIPZ:'VCE',LIPE:'BLQ',LIMF:'TRN',LIRQ:'FLR',LICC:'CTA',LICJ:'PMO',LIBA:'BRI',
+  ENGM:'OSL',EKCH:'CPH',ESGG:'GOT',ESSA:'ARN',EFHK:'HEL',EVRA:'RIX',EETN:'TLL',EYVI:'VNO',
+  EPWA:'WAW',EPKK:'KRK',EPGD:'GDN',LKPR:'PRG',LHBP:'BUD',LZIB:'BTS',
+  LROP:'OTP',LBSF:'SOF',LYBA:'BEG',LDZA:'ZAG',LJLJ:'LJU',
+  LGAV:'ATH',LGTS:'SKG',LGKR:'CFU',LGRP:'RHO',LCLK:'LCA',LCPH:'PFO',
+  OMDB:'DXB',OMDW:'DWC',OMAA:'AUH',OMSJ:'SHJ',OTHH:'DOH',OERK:'RUH',OEJN:'JED',OEDF:'DMM',
+  OKBK:'KWI',OOMS:'MCT',OJAM:'AMM',LLBG:'TLV',
+  LTFM:'IST',LTAI:'AYT',LTBA:'SAW',LTAC:'ESB',
+  HECA:'CAI',HESH:'SSH',GMNN:'CMN',GMMX:'RAK',DTTA:'TUN',DAAG:'ALG',
+  HAAB:'ADD',HKJK:'NBO',FAOR:'JNB',FACT:'CPT',FALE:'DUR',DNMM:'LOS',
+  VABB:'BOM',VIDP:'DEL',VOBL:'BLR',VOHS:'HYD',VOMM:'MAA',VECC:'CCU',VOCL:'COK',VOGO:'GOI',
+  OPRN:'ISB',OPKC:'KHI',VGZR:'DAC',VCBI:'CMB',VNKT:'KTM',
+  VTBS:'BKK',VTBD:'DMK',VVTS:'SGN',VVNB:'HAN',WMKK:'KUL',WSSS:'SIN',
+  WIII:'CGK',WADD:'DPS',RPLL:'MNL',VHHH:'HKG',VMMC:'MFM',RCTP:'TPE',
+  ZBAA:'PEK',ZBAD:'PKX',ZSPD:'PVG',ZSSS:'SHA',ZGGG:'CAN',ZUCK:'TFU',
+  RKSI:'ICN',RKSS:'GMP',RJTT:'HND',RJAA:'NRT',RJBB:'KIX',RJOO:'ITM',RJFF:'FUK',
+  KJFK:'JFK',KLGA:'LGA',KEWR:'EWR',KBOS:'BOS',KPHL:'PHL',KDCA:'DCA',KIAD:'IAD',KCLT:'CLT',
+  KATL:'ATL',KMIA:'MIA',KFLL:'FLL',KMCO:'MCO',KTPA:'TPA',KORD:'ORD',KMDW:'MDW',
+  KDFW:'DFW',KIAH:'IAH',KHOU:'HOU',KDEN:'DEN',KPHX:'PHX',KLAS:'LAS',KLAX:'LAX',
+  KSFO:'SFO',KSEA:'SEA',KPDX:'PDX',KSAN:'SAN',
+  CYVR:'YVR',CYYZ:'YYZ',CYUL:'YUL',CYYC:'YYC',
+  MMMX:'MEX',MMUN:'CUN',
+  SBGR:'GRU',SBGL:'GIG',SCEL:'SCL',SAEZ:'EZE',SKBO:'BOG',SEQM:'UIO',
+  YSSY:'SYD',YMML:'MEL',YBBN:'BNE',YPPH:'PER',NZAA:'AKL',NZCH:'CHC',
+};
+
+// ── ROUTE GRAPHIC ─────────────────────────────────────────
+function drawRoute(pct, depIcao, arrIcao, pctLabel) {
+  const cv = document.getElementById('eta-route');
+  if (!cv) return;
+  const {ctx, W, H} = hiDPI(cv);
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = 64;          // left/right padding for airport labels
+  const lineY = H / 2 + 12; // vertical center of route line
+  const x0 = pad, x1 = W - pad;
+  const lineW = x1 - x0;
+
+  // ── Dashed route track ──────────────────────────────────
+  ctx.beginPath();
+  ctx.setLineDash([6, 5]);
+  ctx.moveTo(x0, lineY);
+  ctx.lineTo(x1, lineY);
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ── Flown portion (solid gradient line) ─────────────────
+  const progress = Math.min(1, Math.max(0, pct / 100));
+  const xPlane = x0 + lineW * progress;
+  if (progress > 0) {
+    const grad = ctx.createLinearGradient(x0, 0, xPlane, 0);
+    grad.addColorStop(0, 'rgba(45,127,232,0.5)');
+    grad.addColorStop(1, 'rgba(45,196,138,0.8)');
+    ctx.beginPath();
+    ctx.moveTo(x0, lineY);
+    ctx.lineTo(xPlane, lineY);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  // ── Airport dots ────────────────────────────────────────
+  // DEP dot
+  ctx.beginPath();
+  ctx.arc(x0, lineY, 5, 0, Math.PI * 2);
+  ctx.fillStyle = CV.ab;
+  ctx.fill();
+  // ARR dot
+  ctx.beginPath();
+  ctx.arc(x1, lineY, 5, 0, Math.PI * 2);
+  ctx.fillStyle = progress >= 1 ? CV.c2 : 'rgba(255,255,255,0.25)';
+  ctx.fill();
+
+  // ── Airport labels ──────────────────────────────────────
+  ctx.textAlign = 'left';
+  ctx.font = 'bold 12px JetBrains Mono,monospace';
+  ctx.fillStyle = CV.ab2;
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(depIcao || 'DEP', 4, lineY - 16);
+  const depIata = IATA[depIcao] || '';
+  if (depIata) { ctx.font = '10px Barlow Condensed,sans-serif'; ctx.fillStyle = CV.mu; ctx.fillText(depIata, 4, lineY - 4); }
+  ctx.textAlign = 'right';
+  ctx.font = 'bold 12px JetBrains Mono,monospace';
+  ctx.fillStyle = progress >= 1 ? CV.c2 : CV.mu2;
+  ctx.fillText(arrIcao || 'ARR', W - 4, lineY - 16);
+  const arrIata = IATA[arrIcao] || '';
+  if (arrIata) { ctx.font = '10px Barlow Condensed,sans-serif'; ctx.fillStyle = CV.mu; ctx.fillText(arrIata, W - 4, lineY - 4); }
+
+  // ── Percentage label above plane ────────────────────────
+  if (pct > 0 && pct < 100) {
+    ctx.font = 'bold 11px Barlow Condensed,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = CV.ft;
+    ctx.fillText(Math.round(pct) + '%', xPlane, lineY - 22);
+  }
+
+  // ── Plane icon ──────────────────────────────────────────
+  if (progress >= 1) {
+    // Landed: show at destination with checkmark
+    ctx.font = '18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = CV.c2;
+    ctx.fillText('✓', x1, lineY);
+  } else {
+    // Clean airplane icon – top-down view, pointing right
+    ctx.save();
+    ctx.translate(xPlane, lineY);
+    ctx.fillStyle = CV.ft;
+    ctx.shadowColor = CV.ft;
+    ctx.shadowBlur = 4;
+
+    const s = 0.6; // scale
+    ctx.beginPath();
+    // Fuselage (slim horizontal body)
+    ctx.moveTo( 18*s,  0);      // nose tip
+    ctx.lineTo( 12*s, -2*s);
+    ctx.lineTo(-14*s, -2*s);    // tail left
+    ctx.lineTo(-18*s, -1*s);
+    ctx.lineTo(-18*s,  1*s);
+    ctx.lineTo(-14*s,  2*s);    // tail right
+    ctx.lineTo( 12*s,  2*s);
+    ctx.closePath();
+    ctx.fill();
+
+    // Main wings (swept back, top-down)
+    ctx.beginPath();
+    ctx.moveTo(  6*s,  0);      // wing root front
+    ctx.lineTo( -2*s, -18*s);   // left wingtip
+    ctx.lineTo( -6*s, -18*s);
+    ctx.lineTo( -4*s,  0);      // wing root back
+    ctx.lineTo( -6*s,  18*s);   // right wingtip
+    ctx.lineTo( -2*s,  18*s);
+    ctx.closePath();
+    ctx.fill();
+
+    // Tail fins (small, at rear)
+    ctx.beginPath();
+    ctx.moveTo(-12*s,  0);
+    ctx.lineTo(-16*s, -7*s);
+    ctx.lineTo(-18*s, -7*s);
+    ctx.lineTo(-16*s,  0);
+    ctx.lineTo(-18*s,  7*s);
+    ctx.lineTo(-16*s,  7*s);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  // ── Glow dot at plane position ───────────────────────────
+  if (progress > 0 && progress < 1) {
+    ctx.beginPath();
+    ctx.arc(xPlane, lineY, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = CV.ft;
+    ctx.shadowColor = CV.ft;
+    ctx.shadowBlur = 3;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // ── "Landed" label ──────────────────────────────────────
+  if (progress >= 1) {
+    ctx.font = 'bold 12px Barlow Condensed,sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = CV.c2;
+    ctx.fillText('Gelandet ✓', W - 4, lineY + 18);
+  }
+}
+
+// ── SIM CLOCK ──────────────────────────────────────────────
+// simBaseMinutes: the sim-UTC minute value when user clicked
+// realBaseMs: the real Date.now() at that moment
+// Together they let us calculate current sim-UTC = simBase + (now - realBase)/60000
+let simBaseMinutes = null;  // sim UTC in minutes at anchor
+let realBaseMs     = null;  // real clock ms at anchor
+let simClockTmr    = null;
+let simRate        = 1;     // sim rate multiplier (1, 2, 4, 8, 16)
+
+// Restore sim clock state from localStorage (survives background freeze / reload)
+(function restoreSimClock() {
+  const b = localStorage.getItem('sim_base_min');
+  const r = localStorage.getItem('sim_base_ms');
+  const rate = localStorage.getItem('sim_rate');
+  if (b && r) {
+    simBaseMinutes = parseFloat(b);
+    realBaseMs     = parseFloat(r);
+    simRate        = rate ? parseFloat(rate) : 1;
+    // Restore rate button UI after DOM ready
+    window.addEventListener('load', () => {
+      document.querySelectorAll('.ratebtn').forEach(b => b.classList.remove('active-rate'));
+      const rateBtn = document.getElementById('rate-'+simRate);
+      if (rateBtn) rateBtn.classList.add('active-rate');
+      if (!simClockTmr) simClockTmr = setInterval(tickSimClock, 1000);
+      tickSimClock();
+    });
+  }
+})();
+
+// Page Visibility API: restart timer when app comes back to foreground
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && simBaseMinutes !== null) {
+    // Timer may have been frozen – restart it and immediately tick to catch up
+    if (simClockTmr) { clearInterval(simClockTmr); simClockTmr = null; }
+    simClockTmr = setInterval(tickSimClock, 1000);
+    tickSimClock(); // immediate update with correct Date.now()
+  }
+});
+
+function startSimClock(){
+  const val = document.getElementById('sim-utc').value;
+  if(!val) return;
+  const [h,m] = val.split(':').map(Number);
+  simBaseMinutes = h * 60 + m;
+  realBaseMs     = Date.now();
+  localStorage.setItem('sim_base_min', simBaseMinutes);
+  localStorage.setItem('sim_base_ms',  realBaseMs);
+  localStorage.setItem('sim_rate',     simRate);
+  document.getElementById('sim-clock-info').textContent = 'Timer läuft ✓ – läuft auch nach Hintergrund weiter';
+  document.getElementById('sim-clock-info').style.color = 'var(--c2)';
+  if(!simClockTmr) simClockTmr = setInterval(tickSimClock, 1000);
+  tickSimClock();
+}
+
+function resetSimClock(){
+  simBaseMinutes = null; realBaseMs = null;
+  localStorage.removeItem('sim_base_min');
+  localStorage.removeItem('sim_base_ms');
+  localStorage.removeItem('sim_rate');
+  document.getElementById('sim-utc').value = '';
+  document.getElementById('sim-clock-display').textContent = '—';
+  document.getElementById('sim-clock-info').textContent = 'Sim-UTC eingeben → Timer läuft automatisch weiter';
+  document.getElementById('sim-clock-info').style.color = '';
+  calcETA();
+}
+
+function setRate(r){
+  // If clock is already running, re-anchor to current sim time so it continues smoothly
+  if(simBaseMinutes !== null){
+    const el = (Date.now() - realBaseMs) / 60000 * simRate;
+    simBaseMinutes = Math.round(simBaseMinutes + el) % 1440;
+    realBaseMs = Date.now();
+  }
+  simRate = r;
+  localStorage.setItem('sim_rate', simRate);
+  // Also update the anchored base time so switch is seamless
+  localStorage.setItem('sim_base_min', simBaseMinutes);
+  localStorage.setItem('sim_base_ms',  realBaseMs);
+  document.querySelectorAll('.ratebtn').forEach(b => b.classList.remove('active-rate'));
+  document.getElementById('rate-'+r).classList.add('active-rate');
+}
+
+function tickSimClock(){
+  if(simBaseMinutes === null){ clearInterval(simClockTmr); simClockTmr = null; return; }
+  const elapsed = (Date.now() - realBaseMs) / 60000 * simRate; // real minutes × rate
+  const simNowM = Math.round(simBaseMinutes + elapsed) % 1440;
+  const h = Math.floor(simNowM / 60), m = simNowM % 60;
+  document.getElementById('sim-clock-display').textContent = fmt2(h) + ':' + fmt2(m);
+  calcETA(simNowM);
+}
+
+// ── ETA CALC ───────────────────────────────────────────────
+function etaLookup(){
+  const icao=document.getElementById('eta-icao').value.toUpperCase();
+  document.getElementById('eta-icao').value=icao;
+  const ap=APDB[icao];
+  const iata = IATA[icao] ? ' ('+IATA[icao]+')' : '';
+  document.getElementById('eta-ap').value=ap?(ap.n+iata):(icao.length===4?'Unbekannter Flughafen':'');
+  calcETA();
+}
+function lastSundayOf(year, month) {
+  // Returns UTC midnight of last Sunday in given month (month: 1-based)
+  const d = new Date(Date.UTC(year, month, 0)); // last day of month
+  d.setUTCDate(d.getUTCDate() - d.getUTCDay()); // back to last Sunday
+  return d;
+}
+function isDST(scheme) {
+  const now = new Date();
+  const y = now.getUTCFullYear();
+  if (scheme === 'EU') {
+    // EU: last Sunday March 01:00 UTC → last Sunday October 01:00 UTC
+    const start = lastSundayOf(y, 3); start.setUTCHours(1);
+    const end   = lastSundayOf(y, 10); end.setUTCHours(1);
+    return now >= start && now < end;
+  }
+  if (scheme === 'US') {
+    // US: 2nd Sunday March 02:00 local → 1st Sunday November 02:00 local (approx UTC)
+    const mar = new Date(Date.UTC(y, 2, 1));
+    mar.setUTCDate(1 + (7 - mar.getUTCDay()) % 7 + 7); // 2nd Sunday
+    mar.setUTCHours(8); // approx 02:00 ET
+    const nov = new Date(Date.UTC(y, 10, 1));
+    nov.setUTCDate(1 + (7 - nov.getUTCDay()) % 7); // 1st Sunday
+    nov.setUTCHours(7);
+    return now >= mar && now < nov;
+  }
+  return false;
+}
+
+
+function calcETA(simNowM){
+  const as=document.getElementById('eta-arr').value;
+  const icao=document.getElementById('eta-icao').value.toUpperCase(),ap=APDB[icao];
+
+  const clearAll=()=>{
+    ['eta-rem','eta-loc','eta-ch'].forEach(i=>document.getElementById(i).textContent='—');
+    document.getElementById('eta-tz').textContent='';
+    document.getElementById('eta-chtz').textContent='';
+    document.getElementById('eta-loc-date').textContent='';
+    document.getElementById('eta-ch-date').textContent='';
+    document.getElementById('eta-elapsed-lbl').textContent='elapsed —';
+    document.getElementById('eta-rem-lbl').textContent='rem —';
+    document.getElementById('eta-status-lbl').textContent='—';
+    drawRoute(0, '', '', null);
+    document.getElementById('eta-tz').textContent='';
+    document.getElementById('eta-chtz').textContent='';
+    document.getElementById('eta-loc-date').textContent='';
+    document.getElementById('eta-ch-date').textContent='';
+  };
+  if(!as){clearAll();return;}
+
+  const[ah,am]=as.split(':').map(Number);
+  const aM=ah*60+am;
+
+  // Compute arrival date
+  const dateStr = document.getElementById('eta-date').value;
+  let arrDateStr = '';
+  if(dateStr) {
+    const depDate = new Date(dateStr + 'T00:00:00Z');
+    // Arrival date = dep date, +1 if arrival UTC < departure UTC (overnight)
+    // We detect overnight by checking if sim-UTC at start > arrival UTC
+    // Simpler: just check if nM (current) > aM significantly → next day
+    // For date display: if aM < simBaseMinutes (i.e. arrival is "before" where we started), +1 day
+    let plusDays = 0;
+    if(simBaseMinutes !== null && aM < simBaseMinutes && (simBaseMinutes - aM) > 60) plusDays = 1;
+    // Also detect via wall-clock: if we've been flying > 12h and aM < depUTC
+    const depH = parseInt(dateStr ? 0 : 0); // just use depDate
+    const arrDate = new Date(depDate);
+    arrDate.setUTCDate(arrDate.getUTCDate() + plusDays);
+    // Format: "Mo, 19. Apr"
+    arrDateStr = arrDate.toLocaleDateString('de-CH', {weekday:'short', day:'numeric', month:'short', timeZone:'UTC'});
+  }
+
+  // Current sim time
+  let nM;
+  if(simNowM!==undefined){
+    nM=simNowM;
+  } else if(simBaseMinutes!==null){
+    const el=(Date.now()-realBaseMs)/60000*simRate;
+    nM=Math.round(simBaseMinutes+el)%1440;
+  } else {
+    const now=new Date();nM=now.getUTCHours()*60+now.getUTCMinutes();
+  }
+
+  // Time remaining = arrival - now (midnight-safe)
+  let remM=aM-nM;
+  if(remM<-60) remM+=1440;   // arrived yesterday → treat as 0
+  if(remM>1440) remM-=1440;  // sanity cap
+
+  const landed=remM<=0;
+  const remClamped=Math.max(0,remM);
+
+  // For progress bar we need a reference total duration.
+  // If sim clock is running, we know when the "journey" started from the sim base.
+  // Otherwise just show remaining time without a percentage.
+  let pct=null;
+  if(simBaseMinutes!==null){
+    const el=(Date.now()-realBaseMs)/60000*simRate;
+    const simNow=Math.round(simBaseMinutes+el)%1440;
+    // total = elapsed since sim start + remaining
+    let totalFromSim=aM-simBaseMinutes;
+    if(totalFromSim<0)totalFromSim+=1440;
+    let elapsedFromSim=simNow-simBaseMinutes;
+    if(elapsedFromSim<0)elapsedFromSim+=1440;
+    if(totalFromSim>0) pct=Math.min(100,Math.round(elapsedFromSim/totalFromSim*100));
+  }
+
+  // Stats
+  document.getElementById('eta-rem').textContent=landed?'Gelandet ✓':fmtH(remClamped);
+  
+
+  // Route graphic
+  const depIcao2 = (document.getElementById('ab-icao')&&document.getElementById('ab-icao').value) ||
+                   (document.getElementById('bo-icao')&&document.getElementById('bo-icao').value) || '';
+  const arrIcao2 = document.getElementById('eta-icao').value || '';
+  drawRoute(pct!==null?pct:0, depIcao2, arrIcao2, pct);
+  document.getElementById('eta-elapsed-lbl').textContent=pct!==null?(landed?'':'elapsed '+pct+'%'):'';
+  document.getElementById('eta-rem-lbl').textContent=landed?'':('rem '+fmtH(remClamped));
+  document.getElementById('eta-status-lbl').textContent=
+    landed?'Gelandet ✓':simBaseMinutes===null?'Sim-UTC eingeben':'Unterwegs';
+
+  // Local arrival time
+  if(ap){
+    const dst=isDST(ap.d)?1:0,off=ap.u+dst,lM=(aM+off*60+1440)%1440;
+    const lovernight=lM<aM&&off>=0||lM>(aM+off*60+1440)%1440;
+    document.getElementById('eta-loc').textContent=fmt2(Math.floor(lM/60))+':'+fmt2(lM%60);
+    document.getElementById('eta-loc-date').textContent=arrDateStr||'';
+    document.getElementById('eta-tz').textContent='UTC'+(off>=0?'+':'')+off+(dst?' (Sommerzeit)':'');
+  } else {
+    document.getElementById('eta-loc').textContent='—';
+    document.getElementById('eta-tz').textContent=icao.length===4?'ICAO unbekannt':'';
+  }
+  // CH-Zeit: aktuelle CH-Zeit + verbleibende Flugzeit
+  const chOff = isDST('EU') ? 2 : 1;
+  const nowReal = new Date();
+  const nowChM = (nowReal.getUTCHours()*60 + nowReal.getUTCMinutes() + chOff*60 + 1440) % 1440;
+  const chArrM = (nowChM + remClamped) % 1440;
+  document.getElementById('eta-ch').textContent = fmt2(Math.floor(chArrM/60))+':'+fmt2(chArrM%60);
+  document.getElementById('eta-ch-date').textContent = arrDateStr||'';
+  document.getElementById('eta-chtz').textContent = 'Jetzt '+fmt2(Math.floor(nowChM/60))+':'+fmt2(nowChM%60)+' + '+fmtH(remClamped);
+}
+function fmtH(m){return Math.floor(m/60)+'h '+fmt2(m%60)+'m';}
+function fmt2(n){return String(n).padStart(2,'0');}
+let etaTmr=null;
+function startETAClock(){
+  if(etaTmr||simClockTmr)return;
+  etaTmr=setInterval(()=>calcETA(),30000);
+}
+
+
+// ── AIRCRAFT AUTO-FILL FROM SIMBRIEF ──────────────────────
+// Maps SimBrief ICAO type codes to {side, family, model, engine}
+const AC_MAP = {
+  // A320 Family
+  'A318':  {s:'ab',f:'A320',m:'A319ceo',e:'CFM56-5B'},
+  'A319':  {s:'ab',f:'A320',m:'A319ceo',e:'CFM56-5B'},
+  'A319N': {s:'ab',f:'A320',m:'A319neo',e:'LEAP-1A'},
+  'A320':  {s:'ab',f:'A320',m:'A320ceo',e:'CFM56-5B'},
+  'A20N':  {s:'ab',f:'A320',m:'A320neo',e:'LEAP-1A'},
+  'A321':  {s:'ab',f:'A320',m:'A321ceo',e:'CFM56-5B'},
+  'A21N':  {s:'ab',f:'A320',m:'A321neo',e:'LEAP-1A'},
+  // A330 Family
+  'A332':  {s:'ab',f:'A330',m:'A330-200',e:'Trent 700'},
+  'A333':  {s:'ab',f:'A330',m:'A330-300',e:'Trent 700'},
+  'A339':  {s:'ab',f:'A330',m:'A330-900neo',e:'Trent 7000'},
+  // A340 Family
+  'A342':  {s:'ab',f:'A340',m:'A340-200',e:'CFM56-5C3'},
+  'A343':  {s:'ab',f:'A340',m:'A340-300',e:'CFM56-5C4'},
+  'A345':  {s:'ab',f:'A340',m:'A340-500',e:'Trent 553'},
+  'A346':  {s:'ab',f:'A340',m:'A340-600',e:'Trent 556'},
+  // B737
+  'B737':  {s:'bo',f:'B737',m:'B737-700',e:'CFM56-7B'},
+  'B738':  {s:'bo',f:'B737',m:'B737-800',e:'CFM56-7B'},
+  'B739':  {s:'bo',f:'B737',m:'B737-900',e:'CFM56-7B'},
+  'B38M':  {s:'bo',f:'B737',m:'B737-8 MAX',e:'LEAP-1B'},
+  'B39M':  {s:'bo',f:'B737',m:'B737-9 MAX',e:'LEAP-1B'},
+  // B747
+  'B744':  {s:'bo',f:'B747',m:'B747-400',e:'PW4062'},
+  'B748':  {s:'bo',f:'B747',m:'B747-8',e:'GEnx-2B'},
+  // B777
+  'B772':  {s:'bo',f:'B777',m:'B777-200',e:'GE90-90B'},
+  'B77L':  {s:'bo',f:'B777',m:'B777-200LR',e:'GE90-110B1L'},
+  'B77W':  {s:'bo',f:'B777',m:'B777-300ER',e:'GE90-115B'},
+  'B773':  {s:'bo',f:'B777',m:'B777-300',e:'GE90-115B'},
+  // B787
+  'B788':  {s:'bo',f:'B787',m:'B787-8',e:'Trent 1000'},
+  'B789':  {s:'bo',f:'B787',m:'B787-9',e:'Trent 1000'},
+  'B78X':  {s:'bo',f:'B787',m:'B787-10',e:'Trent 1000'},
+};
+
+function fillAircraft(code, name) {
+  const ac = AC_MAP[code];
+  if (!ac) {
+    console.log('SimBrief aircraft not mapped:', code, name);
+    return;
+  }
+  if (ac.s === 'ab') {
+    // Switch to Airbus tab
+    showTab('airbus');
+    document.getElementById('ab-fam').value = ac.f;
+    updAbMod();
+    document.getElementById('ab-mod').value = ac.m;
+    updAbEng();
+    document.getElementById('ab-eng').value = ac.e;
+    calcAB();
+  } else {
+    // Switch to Boeing tab
+    showTab('boeing');
+    document.getElementById('bo-fam').value = ac.f;
+    updBoMod();
+    document.getElementById('bo-mod').value = ac.m;
+    updBoEng();
+    document.getElementById('bo-eng').value = ac.e;
+    calcBO();
+  }
+}
+
+// ── LIVE WEATHER (AVWX) ────────────────────────────────────
+let wxLoopTimer = null;
+
+// Load saved API key on startup
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('avwx_key');
+  if (saved && document.getElementById('avwx-key')) {
+    document.getElementById('avwx-key').value = saved;
+  }
+});
+
+async function fetchAVWX() {
+  const key = document.getElementById('avwx-key').value.trim();
+  const icaoEl = document.getElementById('ab-icao');
+  const icao = (icaoEl && icaoEl.value) || (document.getElementById('bo-icao') && document.getElementById('bo-icao').value) || '';
+
+  if (!key) { setWxStat('err', '✗ Bitte AVWX API Key eingeben (kostenlos auf avwx.rest)'); return; }
+  if (!icao || icao.length < 4) { setWxStat('err', '✗ Bitte zuerst Dep. ICAO im Airbus oder Boeing Tab eingeben'); return; }
+
+  setWxStat('', '↻ Lade METAR für '+icao+'…');
+
+  let avwxData;
+  try {
+    const avwxUrl = `https://avwx.rest/api/metar/${icao}?token=${key}&format=json`;
+    let avwxRes;
+    try {
+      // Direct (works on GitHub Pages / local server)
+      avwxRes = await fetch(avwxUrl, {mode:'cors'});
+      if(!avwxRes.ok) throw new Error('direct '+avwxRes.status);
+      avwxData = await avwxRes.json();
+    } catch(pe) {
+      // Proxy fallback for iPad file://
+      setWxStat('', 'Versuche Proxy für AVWX…');
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(avwxUrl)}`;
+      avwxRes = await fetch(proxyUrl);
+      if(!avwxRes.ok) throw new Error('proxy '+avwxRes.status);
+      const wrapper = await avwxRes.json();
+      avwxData = JSON.parse(wrapper.contents);
+    }
+    if (avwxData.error) throw new Error(avwxData.error);
+    if (avwxData.status === 401) throw new Error('Ungültiger API Key');
+    const d = avwxData;
+
+    // Extract values
+    const oat    = d.temperature?.value ?? null;
+    const altimP = d.altimeter?.value ?? null;  // inHg
+    const qnh    = altimP ? Math.round(altimP * 33.8639) : null;
+    const wdir   = d.wind_direction?.value ?? null;
+    const wspd   = d.wind_speed?.value ?? null;
+    const raw    = d.raw ?? '';
+    const time   = d.time?.dt ?? '';
+
+    // Fill both calculators
+    const fill = (id, v) => { if(v!==null && document.getElementById(id)) document.getElementById(id).value = v; };
+    fill('ab-oat', oat); fill('ab-qnh', qnh); fill('ab-wdir', wdir); fill('ab-wspd', wspd);
+    fill('bo-oat', oat); fill('bo-qnh', qnh); fill('bo-wdir', wdir); fill('bo-wspd', wspd);
+    calcAB(); calcBO();
+
+    const ts = time ? new Date(time).toUTCString().slice(17,22)+' UTC' : '';
+    const parts = [];
+    if (oat !== null) parts.push('OAT: '+oat+'°C');
+    if (qnh !== null) parts.push('QNH: '+qnh+' hPa');
+    if (wdir !== null && wspd !== null) parts.push('Wind: '+wdir+'/'+wspd+'kt');
+    setWxStat('ok', '✓ '+icao+' '+ts+'  '+parts.join(' · '));
+    if (raw) {
+      const rawEl = document.getElementById('avwx-raw');
+      if (rawEl) rawEl.textContent = raw;
+    }
+  } catch(e) {
+    setWxStat('err', '✗ '+e.message+' – API Key korrekt? ICAO gültig?');
+  }
+}
+
+function setWxStat(type, msg) {
+  const el = document.getElementById('avwx-stat');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = type==='ok'?'var(--c2)':type==='err'?'var(--c0)':'var(--mu)';
+}
+
+function startWeatherLoop() {
+  if (wxLoopTimer) {
+    clearInterval(wxLoopTimer);
+    wxLoopTimer = null;
+    document.getElementById('wx-loop-btn').textContent = '⏱ Auto (30 min)';
+    document.getElementById('wx-loop-btn').style.color = '';
+    setWxStat('', 'Auto-Update gestoppt');
+    return;
+  }
+  fetchAVWX();
+  wxLoopTimer = setInterval(fetchAVWX, 30 * 60 * 1000);
+  document.getElementById('wx-loop-btn').textContent = '⏹ Auto stoppen';
+  document.getElementById('wx-loop-btn').style.color = 'var(--ft)';
+}
+
+// ── SIMBRIEF ───────────────────────────────────────────────
+async function fetchSB(){
+  const id=document.getElementById('sb-id').value.trim();
+  if(!id||id.length<2){setSBS('err','Bitte Pilot-ID oder SimBrief-Username eingeben.');return;}
+  const btn=document.getElementById('sb-btn');
+  btn.disabled=true;document.getElementById('sb-icon').innerHTML='<span class="spin"></span>';
+  setSBS('','Verbinde mit SimBrief…');
+  try{
+    // SimBrief API – numeric ID uses userid=, text username uses username=
+    const isNumeric = /^\d+$/.test(id);
+    const param = isNumeric ? 'userid' : 'username';
+    const sbUrl = `https://www.simbrief.com/api/xml.fetcher.php?${param}=${id}&json=1`;
+    
+    let d, res;
+    // Try direct first (works on GitHub Pages / local server)
+    try {
+      res = await fetch(sbUrl, {mode:'cors'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      d = await res.json();
+      if(d.error) throw new Error(d.error);
+    } catch(e1) {
+      // Fallback 1: allorigins proxy (works on iPad file://)
+      try {
+        setSBStatus('', 'Versuche Proxy 1…');
+        const p1 = `https://api.allorigins.win/get?url=${encodeURIComponent(sbUrl)}`;
+        res = await fetch(p1);
+        if(!res.ok) throw new Error('proxy1 HTTP '+res.status);
+        const wrapper = await res.json();
+        d = JSON.parse(wrapper.contents);
+        if(d.error) throw new Error(d.error);
+      } catch(e2) {
+        // Fallback 2: corsproxy.io
+        try {
+          setSBStatus('', 'Versuche Proxy 2…');
+          const p2 = `https://corsproxy.io/?${encodeURIComponent(sbUrl)}`;
+          res = await fetch(p2);
+          if(!res.ok) throw new Error('proxy2 HTTP '+res.status);
+          d = await res.json();
+          if(d.error) throw new Error(d.error);
+        } catch(e3) {
+          throw new Error('SimBrief nicht erreichbar. Internetverbindung prüfen. ('+e3.message+')');
+        }
+      }
+    }
+    const orig=d.origin||{},dest=d.destination||{},gen=d.general||{},par=d.params||{};
+
+    const oat=orig.oat!=null?parseInt(orig.oat):null;
+    const qnh=orig.altimeter_hpa!=null?Math.round(parseFloat(orig.altimeter_hpa)):null;
+    const wdir=orig.wind_dir!=null?parseInt(orig.wind_dir):null;
+    const wspd=orig.wind_spd!=null?parseInt(orig.wind_spd):null;
+    const depICAO=(orig.icao_code||'').toUpperCase().trim();
+    const arrICAO=(dest.icao_code||'').toUpperCase().trim();
+    const depName=orig.name||depICAO;
+    const arrName=dest.name||arrICAO;
+    const dist=gen.air_distance||gen.distance||'';
+    const ete=par.est_time_enroute||gen.route_time||'';
+
+    const fill=(eid,v)=>{if(v!==null&&v!==undefined&&document.getElementById(eid))document.getElementById(eid).value=v;};
+    fill('ab-oat',oat);fill('ab-qnh',qnh);fill('ab-wdir',wdir);fill('ab-wspd',wspd);
+    fill('bo-oat',oat);fill('bo-qnh',qnh);fill('bo-wdir',wdir);fill('bo-wspd',wspd);
+
+    if(depICAO){
+      fill('ab-icao',depICAO);fill('bo-icao',depICAO);
+      updRWY('ab');updRWY('bo');
+      showApName('ab');showApName('bo');
+    }
+    if(arrICAO){fill('eta-icao',arrICAO);etaLookup();}
+
+    // Auto-fill aircraft from SimBrief
+    const ac=d.aircraft||{};
+    const acCode=(ac.icaocode||ac.iatacode||'').toUpperCase().trim();
+    const acName=(ac.name||'').trim();
+    if(acCode) fillAircraft(acCode, acName);
+    // Fill arrival time and ETE from SimBrief
+    if(d.times){
+      const schedArr=d.times.sched_out||d.times.sched_block_off||'';
+      const schedIn=d.times.sched_in||d.times.sched_block_on||'';
+      if(schedIn){
+        const arrH=Math.floor(parseInt(schedIn)/3600)%24,arrM=Math.floor(parseInt(schedIn)%3600/60);
+        fill('eta-arr',fmt2(arrH)+':'+fmt2(arrM));
+      }
+    }
+
+
+    // Route strip
+    if(depICAO||arrICAO){
+      document.getElementById('rstrip').style.display='flex';
+      document.getElementById('r-dep').textContent=depICAO||'—';
+      document.getElementById('r-arr').textContent=arrICAO||'—';
+      const depFull = (APDB[depICAO]?APDB[depICAO].n:depName)||(depName)||depICAO;
+      const depIata2 = IATA[depICAO]?(' ('+IATA[depICAO]+')'):'';
+      const depLabel = depFull + depIata2;
+      document.getElementById('r-depname').textContent=(depLabel.length>22?depLabel.slice(0,20)+'…':depLabel);
+      const arrFull = (APDB[arrICAO]?APDB[arrICAO].n:arrName)||(arrName)||arrICAO;
+      const arrIata2 = IATA[arrICAO]?(' ('+IATA[arrICAO]+')'):'';
+      const arrLabel = arrFull + arrIata2;
+      document.getElementById('r-arrname').textContent=(arrLabel.length>22?arrLabel.slice(0,20)+'…':arrLabel);
+      document.getElementById('r-dist').textContent=dist?Math.round(dist)+' nm':'— nm';
+      if(ete){const h=Math.floor(ete/60),m=ete%60;document.getElementById('r-ete').textContent=h+'h '+fmt2(m)+'m';}
+    }
+
+    calcAB();calcBO();
+
+    // Build summary for SimBrief tab
+    const rows = [];
+    if(acCode) rows.push(['Flugzeug', acCode + (acName ? ' – ' + acName : '')]);
+    const depFullName = (APDB[depICAO]?APDB[depICAO].n:depName)||depName||depICAO;
+    if(depICAO) rows.push(['Abflug', depICAO + (IATA[depICAO]?' ('+IATA[depICAO]+')':'') + ' – '+depFullName]);
+    const arrFullName = (APDB[arrICAO]?APDB[arrICAO].n:arrName)||arrName||arrICAO;
+    if(arrICAO) rows.push(['Ankunft', arrICAO + (IATA[arrICAO]?' ('+IATA[arrICAO]+')':'') + ' – '+arrFullName]);
+    if(oat!==null) rows.push(['OAT', oat+'°C']);
+    if(qnh!==null) rows.push(['QNH', qnh+' hPa']);
+    if(wdir!==null&&wspd!==null) rows.push(['Wind', wdir+'° / '+wspd+' kt']);
+    const dist2=document.getElementById('r-dist').textContent;
+    const ete2=document.getElementById('r-ete').textContent;
+    if(dist2&&dist2!=='— nm') rows.push(['Distanz', dist2]);
+    if(ete2&&ete2!=='— h') rows.push(['Flugzeit', ete2]);
+
+    const sumEl=document.getElementById('sb-summary');
+    if(sumEl) sumEl.innerHTML = rows.map(([l,v])=>
+      `<div style="display:flex;gap:12px"><span style="color:var(--mu);min-width:80px;font-size:12px;font-family:var(--cond);font-weight:700;letter-spacing:.08em">${l}</span><span style="font-family:var(--mono);font-size:13px;color:var(--tx)">${v}</span></div>`
+    ).join('');
+
+    setSBS('ok', '✓ Geladen – Tab wechseln zum Rechner');
+
+    // Auto-navigate: if aircraft known, go to that tab; else stay on SimBrief
+    if(acCode && AC_MAP[acCode]) {
+      const side = AC_MAP[acCode].s;
+      setTimeout(()=>showTab(side==='ab'?'airbus':'boeing'), 400);
+    }
+  }catch(e){setSBS('err','✗ '+e.message+' – Pilot-ID korrekt? SimBrief-Flugplan aktiv?');}
+  finally{btn.disabled=false;document.getElementById('sb-icon').textContent='↓';}
+}
+function setSBS(type,msg){
+  const el=document.getElementById('sb-stat');el.textContent=msg;el.className='sbstat '+type;
+}
+
+// ── INIT ──────────────────────────────────────────────────
+// Set today's date as default for ETA
+const todayEl = document.getElementById('eta-date');
+if(todayEl) todayEl.value = new Date().toISOString().slice(0,10);
+drawGauge('ab-gauge',null,CV.ab);drawGauge('bo-gauge',null,CV.bo);
+drawRoute(0,'','',null);
+drawRose('ab-rose',NaN,NaN,NaN,null,CV.ab);drawRose('bo-rose',NaN,NaN,NaN,null,CV.bo);
+drawWBar('ab-wb',NaN,NaN,CV.ab,'t');drawWBar('bo-wb',NaN,NaN,CV.bo,'lbs');
+</script>
+</body>
+</html>
